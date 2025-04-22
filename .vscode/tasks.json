@@ -1,0 +1,25 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "config",
+      "command": "cmake",
+      "args": [
+        "-S", "${workspaceFolder}/src",
+        "-B", "${workspaceFolder}/build",
+        "-D", "VCPKG_TARGET_TRIPLET:STRING=x64-windows-release",
+        "--toolchain", "${env:VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+      ]
+    },
+    {
+      "label": "build",
+      "command": "cmake",
+      "args": [
+        "--build", "${workspaceFolder}/build",
+        "--config", "RelWithDebInfo"
+      ],
+      "dependsOn": ["config"],
+      "dependsOrder": "sequence"
+    }
+  ]
+}

@@ -12,31 +12,60 @@ namespace torment {
 
     template<class T, std::size_t Sz = 0>
     struct unsigned_mixed_system
-    : dense::array<T, Sz>
+    : dense::array<T, Sz>,
+      boost::incrementable<unsigned_mixed_system<T, Sz>>,
+      boost::decrementable<unsigned_mixed_system<T, Sz>>,
+      boost::additive<unsigned_mixed_system<T, Sz>, std::size_t>,
+      boost::equivalent<unsigned_mixed_system<T, Sz>, std::size_t>
       // arithmetic_interface<unsigned_mixed_system<T, Sz>>
     {
-      static_assert(std::is_integral_v<T>, "T is not an integral type" );
-      static_assert(std::is_unsigned_v<T>, "T is not an unsigned integral type");
+      // static_assert(std::is_integral_v<T>, "T is not an integral type" );
+      // static_assert(std::is_unsigned_v<T>, "T is not an unsigned integral type");
 
       typedef dense::array<T, Sz> base_type;
+      typedef base_type::value_type value_type;
       typedef base_type::list_type list_type;
 
-      std::size_t maxval() const;
-      base_type bases() const;
+      using base_type::operator=;
 
-      unsigned_mixed_system& operator++();
-      unsigned_mixed_system& operator+=(value_type val);
+      // bool m_overflow;
 
-      bool operator<(unsigned_mixed_system const &val) const;
+      // unsigned_mixed_system(unsigned_mixed_system const &bases);
+      unsigned_mixed_system();
 
-      unsigned_mixed_system(list_type const &bases);
-      unsigned_mixed_system(std::shared_ptr<base_type const> bases);
+      explicit unsigned_mixed_system(list_type const &bases);
+      explicit unsigned_mixed_system(base_type const &bases);
+      explicit unsigned_mixed_system(std::shared_ptr<base_type> bases);
 
       unsigned_mixed_system& operator=(value_type const& val);
-      unsigned_mixed_system& operator=(list_type const &bases);
+      unsigned_mixed_system& operator=(list_type const &list);
+
+      bool overflow() const;
+      unsigned_mixed_system& overflow(bool set_unset);
+      // unsigned_mixed_system& operator=(base_type const &arg);
+
+      base_type radices() const;
+      void radices(base_type const& radices);
+      std::size_t global_radix() const;
+
+      std::size_t add(std::size_t const &val, std::size_t i = 0);
+
+      unsigned_mixed_system& operator++();
+      unsigned_mixed_system& operator--();
+
+
+      unsigned_mixed_system& operator+=(std::size_t val);
+      unsigned_mixed_system& operator-=(std::size_t val);
+
+      bool operator<(value_type const &val) const;
+      bool operator>(value_type const &val) const;
+
+      // bool operator<(unsigned_mixed_system const &val) const;
+      // bool operator<(unsigned_mixed_system const &val) const;
+
 
       // protected:
-        std::shared_ptr<base_type const> m_bases;
+        std::shared_ptr<base_type> m_radices;
       private:
         void init();
     };

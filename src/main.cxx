@@ -1,20 +1,58 @@
 #include <iostream>
-
-#include "array/sparse/2d.txx"
+#include <valarray>
+#include "array/sparse/array.txx"
+#include <string>
 
 using namespace torment;
 using namespace torment::sparse;
 
-template<class V, class K = std::size_t>
-struct matrix
-: torment::sparse::array2d<V, K> {
+// template<class V, class K = std::size_t>
+// struct matrix
+// : torment::sparse::array2d<V, K> {
 
-};
+// };
+// void* operator new(std::size_t size) {
+//   std::cout << "testing...\n";
+//   return malloc(size);
+// }
+
+template<class T>
+using u2rad = radix::unsigned_mixed_system<T, 2>;
 
 
 int main(int argc,char *argv[]) {
   try {
-    matrix<float> M;
+    // u2rad<std::size_t> grid({3, 3});
+    // u2rad<u2rad<std::size_t>> k({grid, grid});
+
+    // while(k+1)
+    // k = k + 1;
+    // std::cout << k << "\n";
+    // u2rad<std::size_t> grid({3, 3});
+    // u2rad<u2rad<std::size_t>> k({grid, grid});
+
+    // for(auto i = k = {0, 0}; i < k.overflow(true); i++) {
+    //   std::cout << i << "\n";
+    // }
+
+    // typedef dense::array<std::uint16_t, 2> index_type;
+
+    // base<float, 2, index_type> m({}, 0);
+
+    // int cnt = 0;
+    // for(auto it = m.begin(); it != m.end(); it++) {
+    //   *it = cnt++;
+    // }
+    // v = { {{2, 0}, 1.0f},
+    //       {{2, 1}, 2.0f},
+    //       {{2, 2}, 3.0f} };
+
+    // std::cout << m << "\n";
+
+    // base<float> v(3, 0);
+    // std::cout << v << "\n";
+
+    // matrix<float> M() = {};
 
     // dense::array<unsigned, 3> radices = {2, 1, 4};
     // radix::unsigned_mixed_system<unsigned, 3> num = {10, 10, 10};

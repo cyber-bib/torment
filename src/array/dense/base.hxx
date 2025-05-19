@@ -2,8 +2,8 @@
 
 #include "array/std_array.hxx"
 
-#include <type_traits>
 #include <vector>
+#include <type_traits>
 
 namespace torment {
 
@@ -20,6 +20,16 @@ namespace torment {
     template<class T, std::size_t Sz> struct base;
 
 
+
+    // template <class T>
+    // struct is_base : std::false_type {};
+
+    // template <class T, std::size_t Sz>
+    // struct is_base<base<T, Sz>> : std::true_type {};
+
+    // template <class T>
+    // inline constexpr bool is_base_v = is_base<T>::value;
+
     #ifdef _IOSTREAM_ // {
 
     template<class T, std::size_t Sz>
@@ -34,6 +44,7 @@ namespace torment {
       typedef container_type<value_type, Sz> container_t;
 
       using container_t::container_t;
+      // using container_t::operator=;
 
 
       #ifdef _IOSTREAM_ // {

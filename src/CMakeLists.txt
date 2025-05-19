@@ -1,13 +1,4 @@
-cmake_minimum_required(VERSION 3.29.0 FATAL_ERROR)
 
-project(torment)
-
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
-
-find_package(Boost REQUIRED)
-find_package(SDL2 CONFIG REQUIRED)
 
 add_executable(tor-mentor
   main.cxx

@@ -28,13 +28,13 @@ struct mix_radix_system
     return dst;
   }
   void add(std::int64_t const &val, std::size_t i = 0) {
-    std::size_t trad = total_radix(),
+    std:size_t trad = total_radix(),
                 carry = std::abs(val)%trad;
 
     i %= radices.size();
     carry = val >= 0 ? carry : (trad - carry);
 
-    while (carry != 0) {
+    for(; i < this->size(); i++) {
         auto base = radices[i];
         auto sum = (*this)[i] + carry;
 
@@ -42,8 +42,6 @@ struct mix_radix_system
 
         (*this)[i] = sum % base;
         carry = sum / base;
-
-        i = (i + 1) % radices.size(); // wrap around
     }
   }
   void propagate_carry() {

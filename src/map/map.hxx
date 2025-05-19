@@ -31,8 +31,8 @@ namespace torment {
   struct map : public Cont
   {
     typedef Cont container_type;
-    typedef std::pair<const Key, Value> elem_type;
-    typedef std::initializer_list<elem_type> list_type;
+    typedef std::pair<const Key, Value> element_type;
+    typedef std::initializer_list<element_type> list_type;
 
     using container_type::container_type;
 

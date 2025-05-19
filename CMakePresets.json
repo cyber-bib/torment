@@ -1,0 +1,32 @@
+{
+  "version": 8,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 29,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "default",
+      "displayName": "TestAll",
+      "description": "work in progress",
+      "binaryDir": "${sourceDir}/build",
+      "toolchainFile": "$penv{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": {
+          "type": "STRING",
+          "value": "x64-windows-release"
+        }
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "default",
+      "displayName": "TestAll",
+      "description": "work in progress",
+      "configurePreset": "default"
+    }
+  ],
+  "$schema": "https://cmake.org/cmake/help/v3.29/_downloads/3e2d73bff478d88a7de0de736ba5e361/schema.json"
+}

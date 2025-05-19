@@ -1,6 +1,7 @@
 #pragma once
 
 #include "base.hxx"
+#include "array/std_array.txx"
 
 namespace torment {
   namespace dense {

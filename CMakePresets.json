@@ -25,7 +25,8 @@
       "name": "default",
       "displayName": "TestAll",
       "description": "work in progress",
-      "configurePreset": "default"
+      "configurePreset": "default",
+      "configuration": "RelWithDebInfo"
     }
   ],
   "$schema": "https://cmake.org/cmake/help/v3.29/_downloads/3e2d73bff478d88a7de0de736ba5e361/schema.json"

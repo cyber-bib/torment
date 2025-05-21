@@ -21,7 +21,7 @@ namespace torment {
     constexpr bool is_multidimensional = (Rank != 1);
 
     template<class Index, std::size_t Rank>
-    using shape_type = std::conditional_t<  is_multidimensional<Rank>,
+    using shape_t    = std::conditional_t<  is_multidimensional<Rank>,
                                             ::torment::dense::base<Index, Rank>,
                                             Index  >;
 
@@ -42,45 +42,45 @@ namespace torment {
       std::array<Index, Rank> Shape = std::array<Index, Rank>{},
       bool Dynamic = is_dynamic<zredmult(Shape)>>
     struct shape {
-      typedef shape_type<Index, Rank> shape_type;
+      typedef shape_t<Index, Rank> array_type;
 
       static_assert(
         !is_dynamic<zredmult(Shape)>,
         "template parameter \"Dynamic\" modified, "
         "not intended to be manually overwritten.");
 
-      static constexpr shape_type m_shape = Shape;
+      static constexpr array_type m_shape = Shape;
     };
     // shape<std::size_t, 0, false>::m_shape = std::vector{1,2,3};
     template<
       class Index,
       std::array<Index, 1> Shape>
     struct shape<Index, 1, Shape, false> {
-      typedef shape_type<Index, 1> shape_type;
+      typedef shape_t<Index, 1> array_type;
 
       static_assert(
         !is_dynamic<zredmult(Shape)>,
         "template parameter \"Dynamic\" modified, "
         "not intended to be manually overwritten.");
 
-      static constexpr shape_type m_shape = Shape[0];
+      static constexpr array_type m_shape = Shape[0];
     };
     template<
       class Index,
       std::size_t Rank,
       std::array<Index, Rank> Shape>
     struct shape<Index, Rank, Shape, true> {
-      typedef shape_type<Index, Rank> shape_type;
+      typedef shape_t<Index, Rank> array_type;
 
       static_assert(
         is_dynamic<zredmult(Shape)>,
         "template parameter \"Dynamic\" modified, "
         "not intended to be manually overwritten.");
 
-      shape_type m_shape;
+      array_type m_shape;
 
       // template<typename = std::enable_if_t<is_multidimensional<Rank>>>
-      explicit shape(shape_type const& _shape) : m_shape(_shape) {}
+      explicit shape(array_type const& _shape) : m_shape(_shape) {}
 
       // template<class S = shape_type, typename = std::void_t<typename S::list_type>>
       // shape(typename S::list_type const& _shape) : m_shape(_shape) {
@@ -92,6 +92,21 @@ namespace torment {
       // shape(shape_type const& _shape) : m_shape(_shape) {}
     };
 
+    template<
+      class T,
+      std::size_t Rk,
+      std::array<std::size_t, Rk> Sp,
+      std::size_t Sz> struct array;
+
+    template<
+      class T,
+      std::size_t Rk,
+      std::array<std::size_t, Rk> Sp,
+      std::size_t Sz>
+    std::ostream&
+    operator<<(
+      std::ostream &os,
+      array<T,Rk,Sp,Sz> const &arrg  );
 
     template<
       class T,
@@ -107,29 +122,29 @@ namespace torment {
         "Do not modify this value, "
         "not intended to be modified. ");
 
-      typedef base<T, (is_dynamic<Rk> ? 0 : Sz)> base_type;
-      typedef shape<std::size_t, Rk, Sp, is_dynamic<Sz>>::shape_type shape_type;
+      typedef shape<std::size_t, Rk, Sp, is_dynamic<Sz>> shape_type;
+      typedef shape_type::array_type shape_array_type;
 
+      typedef base<T, (is_dynamic<Rk> ? 0 : Sz)> base_type;
       typedef base_type::value_type value_type;
-      // typedef shape_type<std::size_t, Rk> shape_type;
 
       using base_type::base_type;
       using base_type::operator=;
 
       // template<typename
       //   = std::enable_if_t<is_multidimensional<Rk> &&
-      //   is_dynamic<Sz>>>
-      // array(shape_type const& shape);
+      //     is_dynamic<Sz>>>
+      array(shape_array_type const& shape, value_type const& val = 0);
 
-      shape_type shape() const;
+      shape_array_type shape() const;
 
       // value_type& operator[]();
 
-      // #ifdef _IOSTREAM_ // {
+      #ifdef _IOSTREAM_ // {
 
-      // friend std::ostream& operator<< <T, Sz>(std::ostream &os, base const &arr);
+      friend std::ostream& operator<< <T,Rk,Sp,Sz>(std::ostream &os, array const &arr);
 
-      // #endif // } _IOSTREAM_
+      #endif // } _IOSTREAM_
     };
 
   };

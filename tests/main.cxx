@@ -63,7 +63,6 @@ void* operator new(std::size_t size) {
 
 #pragma endregion }}} forward-decls
 
-
 TEST(DenseArrayTests, ShapeStructTest) {
   using namespace torment::dense;
 
@@ -101,7 +100,6 @@ TEST(DenseArrayTests, ShapeStructTest) {
   EXPECT_EQ(sizeof(s2), 1);
 
 }
-
 TEST(DenseArrayTests, ShapeTypeTest) {
   using namespace torment::dense;
 
@@ -112,11 +110,11 @@ TEST(DenseArrayTests, ShapeTypeTest) {
   std::string _2_elem_base_tn = typeid(base<std::size_t, 2>).name();
   std::string _dynamic_base_tn = typeid(base<std::size_t, 0>).name();
 
-  std::string _ivec0_stn = typeid(ivec<0>::shape_type).name();
-  std::string _ivec3_stn = typeid(ivec<3>::shape_type).name();
-  std::string _imat00_stn = typeid(imat<0,0>::shape_type).name();
-  std::string _imat33_stn = typeid(imat<3,3>::shape_type).name();
-  std::string _itensor_stn = typeid(array<int, 0>::shape_type).name();
+  std::string _ivec0_stn = typeid(ivec<0>::shape_array_type).name();
+  std::string _ivec3_stn = typeid(ivec<3>::shape_array_type).name();
+  std::string _imat00_stn = typeid(imat<0,0>::shape_array_type).name();
+  std::string _imat33_stn = typeid(imat<3,3>::shape_array_type).name();
+  std::string _itensor_stn = typeid(array<int>::shape_array_type).name();
 
   EXPECT_EQ(_ivec0_stn, _size_tn);
   EXPECT_EQ(_ivec3_stn, _size_tn);
@@ -124,32 +122,41 @@ TEST(DenseArrayTests, ShapeTypeTest) {
   EXPECT_EQ(_imat33_stn, _2_elem_base_tn);
   EXPECT_EQ(_itensor_stn, _dynamic_base_tn);
 }
-
 TEST(DenseArrayTests, ShapeValueTest) {
   using namespace torment::dense;
   // auto &mem = memory_usage::instance();
   // mem.reset();
-  // base<int, 9> b(,);
 
   constexpr auto _33 = urr(3, 3);
-  array<int, 2, _33> v_stack;
 
-  // array<int, 2>::shape_type _24 = {2, 4};
-  // array<int, 2> v_fix_rank_heap(_24);
+  array<int, 2, _33> v_frfs = {
+    1, 0, 0,
+    0, 1, 0,
+    0, 0, 1  }; // static array
 
-  // array<int>::shape_type _44 = {4, 4};
-  // array<int> v_heap({4, 4});
+  array<int, 2>::shape_array_type _24 = {2, 4};
+  array<int, 2> v_frds(_24, 1);
+
+  array<int>::shape_array_type _44 = {4, 4};
+  array<int> v_heap(_44);
 
   // mem.print();
 
-  //  = {
-    // 1, 0, 0,
-    // 0, 1, 0,
-    // 0, 0, 1  }; // static array
 
+  // std::cout << v_frfs << "\n";
   // base<std::size_t, _33.size()> b33 = _33;
+  // std::cout << typeid(array<int, 2>::shape_type).name() << "\n";
 
-  EXPECT_EQ(_33, v_stack.shape());
-  // EXPECT_EQ(_24, v_fix_rank_heap.shape());
-  // EXPECT_EQ(_44, v_heap.shape());
+  EXPECT_EQ(_33, v_frfs.shape());
+  EXPECT_EQ(_24, v_frds.shape());
+  EXPECT_EQ(_44, v_heap.shape());
+}
+TEST(DenseArrayTests, StreamTest) {
+  using namespace std::string_literals;
+  std::stringstream ss;
+  ivec<4> vec = {1, 2, 3, 4};
+
+  ss << vec;
+
+  EXPECT_EQ(ss.str(), "[1, 2, 3, 4]"s);
 }

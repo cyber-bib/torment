@@ -37,7 +37,7 @@ namespace torment {
 
     #endif // } _IOSTREAM_
 
-    template<class T, std::size_t Sz>
+    template<class T, std::size_t Sz = 0>
     struct base : container_type<T, Sz> {
       typedef typename T value_type;
       typedef std::initializer_list<T> list_type;

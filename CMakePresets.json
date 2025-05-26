@@ -5,10 +5,10 @@
     "minor": 29,
     "patch": 0
   },
-  "configurePresets": [
+ "configurePresets": [
     {
       "name": "default",
-      "displayName": "TestAll",
+      "displayName": "The Only One",
       "description": "work in progress",
       "binaryDir": "${sourceDir}/build",
       "toolchainFile": "$penv{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
@@ -23,10 +23,22 @@
   "buildPresets": [
     {
       "name": "default",
-      "displayName": "TestAll",
+      "displayName": "The Only One",
       "description": "work in progress",
       "configurePreset": "default",
       "configuration": "RelWithDebInfo"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "default",
+      "displayName": "The Only One",
+      "description": "work in progress",
+      "configurePreset": "default",
+      "configuration": "RelWithDebInfo",
+      "output": {
+        "outputOnFailure": true
+      }
     }
   ],
   "$schema": "https://cmake.org/cmake/help/v3.29/_downloads/3e2d73bff478d88a7de0de736ba5e361/schema.json"

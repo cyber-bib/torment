@@ -3,9 +3,9 @@
 #include <functional>
 #include <iostream>
 
+#include "array/sparse/array.txx"
 #include "array/dense/array.txx"
 #include "gtest/gtest.h"
-
 
 #pragma region forward-decls {{{
 
@@ -62,7 +62,12 @@ void* operator new(std::size_t size) {
 }
 
 #pragma endregion }}} forward-decls
+#pragma region DenseArrayTests {{{
 
+TEST(DenseBaseTests, ShapeStructTest) {
+  using namespace torment::dense;
+
+}
 TEST(DenseArrayTests, ShapeStructTest) {
   using namespace torment::dense;
 
@@ -152,11 +157,53 @@ TEST(DenseArrayTests, ShapeValueTest) {
   EXPECT_EQ(_44, v_heap.shape());
 }
 TEST(DenseArrayTests, StreamTest) {
-  using namespace std::string_literals;
+  using namespace torment::dense;
+
   std::stringstream ss;
+  std::string str;
+
   ivec<4> vec = {1, 2, 3, 4};
+  imat<4, 4> mat = {
+    1, 0, 0, 0,
+    0, 2, 0, 0,
+    0, 0, 3, 0,
+    0, 0, 0, 4
+  };
 
+  ss.str("");
   ss << vec;
+  str = "[1, 2, 3, 4]";
+  EXPECT_EQ(ss.str(), str);
 
-  EXPECT_EQ(ss.str(), "[1, 2, 3, 4]"s);
+  ss.str("");
+  ss << mat;
+  str =
+    "[[1, 0, 0, 0], \n"
+    " [0, 2, 0, 0], \n"
+    " [0, 0, 3, 0], \n"
+    " [0, 0, 0, 4]]";
+  EXPECT_EQ(ss.str(), str);
+
+  array<int> tensor(base<std::size_t>(4, 2));
+  for(int counter = 0; auto &e: tensor)
+    e = counter++ % 2;
+  ss.str("");
+  ss << tensor;
+  str =
+    "[[[[0, 1], \n"
+    "   [0, 1]], \n"
+    "  [[0, 1], \n"
+    "   [0, 1]]], \n"
+    " [[[0, 1], \n"
+    "   [0, 1]], \n"
+    "  [[0, 1], \n"
+    "   [0, 1]]]]";
+  EXPECT_EQ(ss.str(), str);
 }
+
+TEST(SparseArrayTests, Dummy) {
+  // using namespace torment::dense;
+
+}
+
+#pragma endregion }}} DenseArrayTests

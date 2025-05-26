@@ -4,9 +4,23 @@
       "name": "(Windows) Launch",
       "type": "cppvsdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/build/tests/RelWithDebInfo/tests.exe",
+      "program": "${workspaceFolder}/build/src/RelWithDebInfo/tor-mentor.exe",
       "args": [],
       "cwd": "${workspaceFolder}/public",
+      "stopAtEntry": false,
+      "environment": [],
+      "preLaunchTask": "build",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "(Windows) Run Tests",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "ctest",
+      "args": [
+        "--preset", "default"
+      ],
+      "cwd": "${workspaceFolder}",
       "stopAtEntry": false,
       "environment": [],
       "preLaunchTask": "build",

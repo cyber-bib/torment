@@ -140,11 +140,11 @@ namespace torment {
 
       // value_type& operator[]();
 
-      #ifdef _IOSTREAM_ // {
+      // #ifdef _IOSTREAM_ // {
 
-      friend std::ostream& operator<< <T,Rk,Sp,Sz>(std::ostream &os, array const &arr);
+      friend std::ostream& operator<< <T,Rk,Sp,Sz>(std::ostream &os, array const &arg);
 
-      #endif // } _IOSTREAM_
+      // #endif // } _IOSTREAM_
     };
 
   };

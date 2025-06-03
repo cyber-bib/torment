@@ -50,6 +50,9 @@ array<T,Rk,S,Sz>::shape() const {
   return dst;
 }
 
+
+#ifdef _IOSTREAM_ // {
+
 template<
   class T,
   std::size_t Rk,
@@ -64,7 +67,7 @@ operator<<(
   if constexpr(Rk != 1) {
 
     typedef array<T,Rk,Sp,Sz> arg_type;
-    typedef arg_type::shape_array_type indices_type;
+    typedef typename arg_type::shape_array_type indices_type;
 
     typedef void (*unwrap_type)(
       arg_type const &,
@@ -135,7 +138,8 @@ operator<<(
       indices.fill(0);
 
     os << "[";
-    unwrap(arg, indices, arg.shape().size() - 1, os, unwrap);
+    unwrap(arg, indices, arg.shape().size() - 1, os,
+      reinterpret_cast<void*>(unwrap));
     os << "]";
 
   } else {
@@ -154,6 +158,8 @@ operator<<(
 
   return os;
 }
+
+#endif // } _IOSTREAM_
 
 }; // namespace dense
 

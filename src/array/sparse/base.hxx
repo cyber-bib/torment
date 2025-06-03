@@ -31,6 +31,10 @@ namespace torment {
 
     #endif // } _IOSTREAM_
 
+
+
+    #pragma region base-definition {
+
     template< class Value,
               std::size_t Rank = 0,
               class Index = std::size_t,
@@ -75,7 +79,7 @@ namespace torment {
       // base( key_type && dims = key_type(-1),
       //       value_type && default_v = 0                                       );
 
-      template<typename = std::enable_if_t<Rank==0>>
+      template<std::size_t R = Rank, typename = std::enable_if_t<R==0>>
       explicit base(  index_type dims = index_type(0),
                       value_type const& default_val = 0,
                       list_type const& list = {}                              );
@@ -91,7 +95,7 @@ namespace torment {
       // base( list_type const& list,
       //       key_type const& dims = key_type(0),
       //       value_type const& default_v = 0                                   );
-      template<typename = std::enable_if_t<Rank==0>>
+      template<std::size_t R = Rank, typename = std::enable_if_t<R==0>>
       base& operator=(value_type const &val);
       base& operator=(list_type const &list);
 
@@ -124,12 +128,14 @@ namespace torment {
 
       #endif // } _IOSTREAM_
 
-      template<typename = std::enable_if_t<Rank==0>>
+      template<std::size_t R = Rank, typename = std::enable_if_t<R==0>>
       bool is_list_valid(list_type const &list) const;
 
-      template<typename = std::enable_if_t<Rank==0>>
+      template<std::size_t R = Rank, typename = std::enable_if_t<R==0>>
       void throw_if_list_not_valid(list_type const &list) const;
     };
+    #pragma endregion } base-definition
+    #pragma region element_reference-definition {
 
     template<class V, std::size_t R, class I, class K, class C>
     struct base<V,R,I,K,C>::element_reference {
@@ -142,6 +148,9 @@ namespace torment {
       element_reference& operator=(value_type const& value);
     };
 
+    #pragma endregion } element_reference-definition
+    #pragma region element_iterator-definition {
+
     // template<class V, std::size_t R, class I, class K, class C>
     // struct base<V,R,I,K,C>::element_iterator_base {
     //   typedef radix::unsigned_mixed_system<I, R> iterable_type;
@@ -152,6 +161,7 @@ namespace torment {
 
     //   explicit element_iterator_base(iterable_type const& ikey, base &chain);
     // };
+
 
     template<class V, std::size_t R, class I, class K, class C>
     struct base<V,R,I,K,C>::element_iterator
@@ -174,6 +184,7 @@ namespace torment {
       bool operator<(element_iterator const &rhs) const;
     };
 
+
     // template<class V, std::size_t R, class I, class K, class C>
     // struct base<V,R,I,K,C>::element_const_iterator {
     //   typedef typename radix::unsigned_mixed_system<I, R> iterable_type;
@@ -189,6 +200,9 @@ namespace torment {
     // base<V,K,C>::key_type const& base<V,K,C>::shape() const {
 
     // }
+
+
+    #pragma endregion } element_iterator-definition
   };
 
 };

@@ -3,12 +3,13 @@
 #include <functional>
 #include <iostream>
 
-#include "array/sparse/array.txx"
+#include "radix/mix.txx"
 #include "array/dense/array.txx"
+#include "array/sparse/array.txx"
+
 #include "gtest/gtest.h"
 
-#pragma region forward-decls {{{
-
+#pragma region forward-decls {
 
 // template<class T>
 // using dense = torment::dense::base<T, 0>;
@@ -18,6 +19,9 @@ using ivec = torment::dense::array<int, 1, torment::dense::urr(N)>;
 
 template<std::size_t R, std::size_t C>
 using imat = torment::dense::array<int, 2, torment::dense::urr(R, C)>;
+
+template<class T, std::size_t N = 0>
+using mrns = torment::radix::unsigned_mixed_system<T, N>;
 
 void* operator new(std::size_t size);
 
@@ -61,12 +65,46 @@ void* operator new(std::size_t size) {
   return malloc(size);
 }
 
-#pragma endregion }}} forward-decls
-#pragma region DenseArrayTests {{{
+#pragma endregion } forward-decls
+#pragma region DenseArrayTests {
 
-TEST(DenseBaseTests, ShapeStructTest) {
+TEST(MixedRadixSystemTests, SimpleTest) {
+  using namespace std;
   using namespace torment::dense;
 
+  typedef std::uint64_t u64;
+
+  mrns<u64, 2> grid({3, 3});
+
+  mrns<mrns<u64, 2>, 2> k({grid, grid});
+
+  //
+  // while(k+1)
+  // k = k + 1;
+  // std::cout << k << "\n";
+  // u2rad<std::size_t> grid({3, 3});
+  // u2rad<u2rad<std::size_t>> k({grid, grid});
+  //
+  // for(auto i = k = {0, 0}; i < k.overflow(true); i++) {
+  //   std::cout << i << "\n";
+  // }
+  //
+  // typedef dense::array<std::uint16_t, 2> index_type;
+  //
+  // base<float, 2, index_type> m({}, 0);
+  //
+  // int cnt = 0;
+  // for(auto it = m.begin(); it != m.end(); it++) {
+  //   *it = cnt++;
+  // }
+  // v = { {{2, 0}, 1.0f},
+  //       {{2, 1}, 2.0f},
+  //       {{2, 2}, 3.0f} };
+  //
+  // std::cout << m << "\n";
+  //
+  // base<float> v(3, 0);
+  // std::cout << v << "\n";
 }
 TEST(DenseArrayTests, ShapeStructTest) {
   using namespace torment::dense;
@@ -202,8 +240,29 @@ TEST(DenseArrayTests, StreamTest) {
 }
 
 TEST(SparseArrayTests, Dummy) {
-  // using namespace torment::dense;
+  typedef std::uint64_t u64;
 
+  using namespace torment::sparse;
+
+  auto &cout = std::cout;
+
+  mrns<u64, 2> grid({3, 3});
+  mrns<mrns<u64, 2>, 2> k({grid, grid});
+
+  cout << k << "\n";
+  // kalt = 0;
+
+
+  // array<int, 2, mrns<u64, 2>>::base_type::index_type idx({1, 2});
+  // array<int, 2, mrns<u64, 2>> v1({grid, grid}, 0);
+  array<int, 2, mrns<u64, 2>> v1(k, 0);
+
+  // array<int, 2, mrns<u64, 2>>::base_type::index_type idx;
+  // array<int, 2, mrns<u64, 2>>::base_type::key_type key;
+
+  // cout << v1 << "\n"; //this should print a 9x9 grid
+
+  FAIL();
 }
 
-#pragma endregion }}} DenseArrayTests
+#pragma endregion } DenseArrayTests

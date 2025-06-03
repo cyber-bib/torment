@@ -39,7 +39,7 @@ namespace torment {
 
     template<class T, std::size_t Sz = 0>
     struct base : container_type<T, Sz> {
-      typedef typename T value_type;
+      typedef T value_type;
       typedef std::initializer_list<T> list_type;
       typedef container_type<value_type, Sz> container_t;
 

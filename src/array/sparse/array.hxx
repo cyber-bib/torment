@@ -5,33 +5,38 @@
 
 namespace torment {
 
-namespace sparse {
-template<class V, std::size_t N, class K> struct array;
+  namespace sparse {
 
-#ifdef _IOSTREAM_ // {
+    template<class V, std::size_t N, class K> struct array;
 
-template< class V, std::size_t N, class K>
-std::ostream& operator<<(std::ostream &os, array<V, N, K> const &arr);
+    #ifdef _IOSTREAM_ // {
 
-#endif // } _IOSTREAM_
+    // template< class V, std::size_t N, class K>
+    // std::ostream& operator<<(std::ostream &os, array<V, N, K> const &arr);
 
-template<class V, std::size_t R = 1, class K = std::size_t>
-struct array : base<V,R,K> {
+    #endif // } _IOSTREAM_
 
-typedef base<V,R,K> base_type;
-typedef typename base_type::value_type value_type;
+    #pragma region array-definiton {
 
-using base_type::base_type;
-using base_type::operator=;
+    template<class V, std::size_t R = 1, class K = std::size_t>
+    struct array : base<V,R,K> {
 
-#ifdef _IOSTREAM_ // {
+      typedef base<V,R,K> base_type;
+      typedef typename base_type::value_type value_type;
 
-friend std::ostream& operator<< <V,R,K>(std::ostream &os, array const &sarr);
+      using base_type::base_type;
+      using base_type::operator=;
 
-#endif // } _IOSTREAM_
+      #ifdef _IOSTREAM_ // {
 
-};
+      // friend std::ostream& operator<< <V,R,K>(std::ostream &os, array const &sarr);
 
-} // namespace sparse
+      #endif // } _IOSTREAM_
+
+    };
+
+    #pragma endregion } array-definiton
+
+  } // namespace sparse
 
 } // namespace torment

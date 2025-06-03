@@ -2,7 +2,7 @@
 
 #include <memory>
 #include <boost/operators.hpp>
-#include "array/dense/array.hxx"
+#include "array/dense/base.hxx"
 
 // #include "iface.hxx"
 
@@ -12,7 +12,7 @@ namespace torment {
 
     template<class T, std::size_t Sz = 0>
     struct unsigned_mixed_system
-    : dense::array<T, Sz>,
+    : dense::base<T, Sz>,
       boost::incrementable<unsigned_mixed_system<T, Sz>>,
       boost::decrementable<unsigned_mixed_system<T, Sz>>,
       boost::additive<unsigned_mixed_system<T, Sz>, std::size_t>,
@@ -22,7 +22,7 @@ namespace torment {
       // static_assert(std::is_integral_v<T>, "T is not an integral type" );
       // static_assert(std::is_unsigned_v<T>, "T is not an unsigned integral type");
 
-      typedef dense::array<T, Sz> base_type;
+      typedef dense::base<T, Sz> base_type;
       typedef base_type::value_type value_type;
       typedef base_type::list_type list_type;
 

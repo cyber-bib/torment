@@ -98,6 +98,8 @@ namespace torment {
       std::array<std::size_t, Rk> Sp,
       std::size_t Sz> struct array;
 
+    #ifdef _IOSTREAM_ // {
+
     template<
       class T,
       std::size_t Rk,
@@ -107,6 +109,8 @@ namespace torment {
     operator<<(
       std::ostream &os,
       array<T,Rk,Sp,Sz> const &arrg  );
+
+    #endif // } _IOSTREAM_
 
     template<
       class T,
@@ -140,11 +144,11 @@ namespace torment {
 
       // value_type& operator[]();
 
-      // #ifdef _IOSTREAM_ // {
+      #ifdef _IOSTREAM_ // {
 
       friend std::ostream& operator<< <T,Rk,Sp,Sz>(std::ostream &os, array const &arg);
 
-      // #endif // } _IOSTREAM_
+      #endif // } _IOSTREAM_
     };
 
   };

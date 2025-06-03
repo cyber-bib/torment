@@ -34,11 +34,12 @@ namespace torment {
     // }
 
     template< class V, std::size_t R, class I, class K, class C>
-    template<typename> base<V,R,I,K,C>::base(
+    template<std::size_t _R, typename> base<V,R,I,K,C>::base(
       index_type dims,
       value_type const& default_val,
       list_type const& list  )
     : base(key_type{dims}, default_val, list) {
+      static_assert(_R == R, "This is a dummy template parameter, do not modify.");
     }
 
     template< class V, std::size_t R, class I, class K, class C>
@@ -76,9 +77,11 @@ namespace torment {
     // }
 
     template< class V, std::size_t R, class I, class K, class C>
-    template<typename> typename base<V,R,I,K,C>::base&
+    template<std::size_t _R, typename> base<V,R,I,K,C>&
     base<V,R,I,K,C>::operator=(value_type const &val) {
       if(this->m_dims.size() != 0) {
+        static_assert(_R == R, "This is a dummy template parameter, do not modify.");
+
         std::invalid_argument err("expecting a list, a scalar was given (rank != 0)");
         throw err;
       }
@@ -86,7 +89,7 @@ namespace torment {
       return *this;
     }
     template< class V, std::size_t R, class I, class K, class C>
-    typename base<V,R,I,K,C>::base&
+    base<V,R,I,K,C>&
     base<V,R,I,K,C>::operator=(list_type const &list) {
 
       // auto[shape, value] = *this->rbegin();
@@ -238,8 +241,10 @@ namespace torment {
     }
 
     template< class V, std::size_t R, class I, class K, class C>
-    template<typename> bool
+    template<std::size_t _R, typename> bool
     base<V,R,I,K,C>::is_list_valid(list_type const &list) const {
+      static_assert(_R == R, "This is a dummy template parameter, do not modify.");
+
       bool dst = true;
 
       for(auto &elem : list) {
@@ -255,8 +260,10 @@ namespace torment {
     }
 
     template< class V, std::size_t R, class I, class K, class C>
-    template<typename> void
+    template<std::size_t _R, typename> void
     base<V,R,I,K,C>::throw_if_list_not_valid(list_type const &list) const {
+      static_assert(_R == R, "This is a dummy template parameter, do not modify.");
+
       if(!is_list_valid(list)) {
         std::invalid_argument err("list key's rank(s) do not match the array's dimensionality");
         throw err;

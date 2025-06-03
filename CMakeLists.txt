@@ -7,7 +7,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 
 include(GoogleTest)
-
 find_package(Boost REQUIRED)
 find_package(SDL2 CONFIG REQUIRED)
 

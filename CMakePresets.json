@@ -5,17 +5,22 @@
     "minor": 29,
     "patch": 0
   },
- "configurePresets": [
+  "configurePresets": [
     {
       "name": "default",
       "displayName": "The Only One",
       "description": "work in progress",
       "binaryDir": "${sourceDir}/build",
+      "generator": "Ninja Multi-Config",
       "toolchainFile": "$penv{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
       "cacheVariables": {
         "VCPKG_TARGET_TRIPLET": {
           "type": "STRING",
           "value": "x64-windows-release"
+        },
+        "CMAKE_EXPORT_COMPILE_COMMANDS": {
+          "type": "BOOL",
+          "value": true
         }
       }
     }

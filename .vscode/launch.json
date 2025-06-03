@@ -1,28 +1,48 @@
 {
   "configurations": [
+    // {
+    //   "name": "(Windows) Launch",
+    //   "type": "cppvsdbg",
+    //   "request": "launch",
+    //   "program": "${workspaceFolder}/build/src/RelWithDebInfo/tor-mentor.exe",
+    //   "args": [],
+    //   "cwd": "${workspaceFolder}/public",
+    //   "stopAtEntry": false,
+    //   "environment": [],
+    //   "preLaunchTask": "build",
+    //   "console": "integratedTerminal"
+    // },
+    // {
+    //   "name": "(Windows) Run Tests",
+    //   "type": "cppvsdbg",
+    //   "request": "launch",
+    //   "program": "ctest",
+    //   "args": [
+    //     "--preset", "default"
+    //   ],
+    //   "cwd": "${workspaceFolder}",
+    //   "stopAtEntry": false,
+    //   "environment": [],
+    //   "preLaunchTask": "build",
+    //   "console": "integratedTerminal"
+    // },
     {
-      "name": "(Windows) Launch",
-      "type": "cppvsdbg",
+      "name": "(LLDB) Testing",
+      "type": "lldb",
       "request": "launch",
-      "program": "${workspaceFolder}/build/src/RelWithDebInfo/tor-mentor.exe",
+      "program": "${workspaceFolder}/build/tests/RelWithDebInfo/tests.exe",
       "args": [],
-      "cwd": "${workspaceFolder}/public",
-      "stopAtEntry": false,
-      "environment": [],
+      "cwd": "${workspaceFolder}",
       "preLaunchTask": "build",
       "console": "integratedTerminal"
     },
     {
-      "name": "(Windows) Run Tests",
-      "type": "cppvsdbg",
+      "name": "(CodeLLDB) Testing",
+      "type": "codelldb",
       "request": "launch",
-      "program": "ctest",
-      "args": [
-        "--preset", "default"
-      ],
+      "program": "${workspaceFolder}/build/tests/RelWithDebInfo/tests.exe",
+      "args": [],
       "cwd": "${workspaceFolder}",
-      "stopAtEntry": false,
-      "environment": [],
       "preLaunchTask": "build",
       "console": "integratedTerminal"
     }

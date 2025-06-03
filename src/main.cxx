@@ -22,36 +22,6 @@ using u2rad = radix::unsigned_mixed_system<T, 2>;
 
 int main(int argc,char *argv[]) {
   try {
-    // u2rad<std::size_t> grid({3, 3});
-    // u2rad<u2rad<std::size_t>> k({grid, grid});
-
-    // while(k+1)
-    // k = k + 1;
-    // std::cout << k << "\n";
-    // u2rad<std::size_t> grid({3, 3});
-    // u2rad<u2rad<std::size_t>> k({grid, grid});
-
-    // for(auto i = k = {0, 0}; i < k.overflow(true); i++) {
-    //   std::cout << i << "\n";
-    // }
-
-    // typedef dense::array<std::uint16_t, 2> index_type;
-
-    // base<float, 2, index_type> m({}, 0);
-
-    // int cnt = 0;
-    // for(auto it = m.begin(); it != m.end(); it++) {
-    //   *it = cnt++;
-    // }
-    // v = { {{2, 0}, 1.0f},
-    //       {{2, 1}, 2.0f},
-    //       {{2, 2}, 3.0f} };
-
-    // std::cout << m << "\n";
-
-    // base<float> v(3, 0);
-    // std::cout << v << "\n";
-
     // matrix<float> M() = {};
 
     // dense::array<unsigned, 3> radices = {2, 1, 4};

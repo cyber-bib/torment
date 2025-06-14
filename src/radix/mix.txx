@@ -4,6 +4,8 @@
 #include "array/dense/array.txx"
 
 #include <algorithm>
+#include <memory>
+#include <stdexcept>
 
 namespace torment {
 
@@ -69,6 +71,7 @@ void unsigned_mixed_system<T,Sz>::init() {
     for(auto &e: *this) e = 0;
 
     (*this) += val;
+    if(val == 0) this->m_overflow = false;
 
     return *this;
   }
@@ -143,14 +146,15 @@ void unsigned_mixed_system<T,Sz>::init() {
         auto base = (*this->m_radices)[i];
         auto sum = (*this)[i] + carry;
 
-        if(sum <  (*this)[i]) throw std::logic_error("unhandled overflow detected");
+        // TODO: don't know if this logic should be added
+        //  if(sum <  (*this)[i]) throw std::logic_error("unhandled overflow detected");
 
         (*this)[i] = sum % base;
         carry = sum / base;
         if(carry == 0) break;
     }
 
-    // this->m_overflow |= carry != 0;
+    this->m_overflow |= carry != 0;
     return carry;
   }
 
@@ -207,18 +211,42 @@ void unsigned_mixed_system<T,Sz>::init() {
     return (*this > tmp);
   }
 
-  // template<class T, std::size_t Sz> bool
-  // unsigned_mixed_system<T,Sz>::operator<(
-  //   unsigned_mixed_system const &rhs
-  // ) const {
-  //   auto lhs = static_cast<base_type const &>(*this);
+  template<class T, std::size_t Sz> bool
+  unsigned_mixed_system<T,Sz>::operator<(
+    unsigned_mixed_system const &rhs
+  ) const {
+    auto lhs = static_cast<base_type const &>(*this);
 
-  //   auto lt = this->m_overflow < rhs.m_overflow;
-  //   auto gt = this->m_overflow > rhs.m_overflow;
+    auto lt = this->m_overflow < rhs.m_overflow;
+    auto gt = this->m_overflow > rhs.m_overflow;
 
-  //   return lt ? lt : ( gt ? !gt : lhs < rhs);
-  // }
+    return lt ? lt : ( gt ? !gt : lhs < rhs);
+  }
 
+  // template<class T, std::size_t Sz>
+  // unsigned_mixed_system<T,Sz>::unsigned_mixed_system()
+  // : m_radices(nullptr) {}
+
+  template<class T, std::size_t Sz, std::size_t Sy>
+  unsigned_mixed_system<unsigned_mixed_system<T, Sy>, Sz>::
+    unsigned_mixed_system(
+      std::initializer_list<unsigned_mixed_system<T, Sy>> const &helper_list)
+  {
+    // if(helper_list.size() != Sz) throw std::invalid_argument("list size is wrong!");
+
+    // this->m_radices = std::make_shared<::torment::dense::base<T, Sy*Sz>>();
+    this->m_radices = std::make_shared<array_type>();
+    if(Sy*Sz == 0) {
+      // TODO: need to handle this case...
+    }
+    std::size_t counter = 0;
+    for(auto &item : helper_list)
+      for(auto &elem : *item.m_radices)
+        this->m_radices->at(counter++) = elem;
+
+    this->init();
+    // this->m_radices
+  }
 } // namespace radix
 
 } // namespace torment

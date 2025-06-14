@@ -7,6 +7,10 @@
 #include <stdexcept>
 #include <numeric>
 
+#ifdef _IOSTREAM_ // {
+# include <iomanip>
+#endif // } _IOSTREAM_
+
 namespace torment {
 
   namespace sparse {
@@ -156,17 +160,19 @@ namespace torment {
       this->m_dval = new_value;
     }
 
-    template< class V, std::size_t R, class I, class K, class C>
-    typename base<V,R,I,K,C>::element_iterator
-    base<V,R,I,K,C>::begin() {
-      assert("TODO: Implementation");
-      typedef typename element_iterator::iterable_type iterable_type;
 
-      iterable_type ikey(this->m_dims);
-      element_iterator dst(ikey, *this);
+    // template< class V, std::size_t R, class I, class K, class C>
+    // typename base<V,R,I,K,C>::element_iterator
+    // base<V,R,I,K,C>::begin() {
+    //   assert("TODO: Implementation");
+    //   typedef typename element_iterator::iterable_type iterable_type;
 
-      return dst;
-    }
+    //   iterable_type ikey(this->m_dims);
+    //   element_iterator dst(ikey, *this);
+
+    //   return dst;
+    // }
+
     // template< class V, std::size_t R, class I, class K, class C>
     // typename base<V,R,I,K,C>::element_const_iterator
     // base<V,R,I,K,C>::begin() const {
@@ -179,18 +185,20 @@ namespace torment {
     //   return dst;
     // }
 
-    template< class V, std::size_t R, class I, class K, class C>
-    typename base<V,R,I,K,C>::element_iterator
-    base<V,R,I,K,C>::end() {
-      assert("TODO: Implementation");
-      typedef typename element_iterator::iterable_type iterable_type;
+    // template< class V, std::size_t R, class I, class K, class C>
+    // typename base<V,R,I,K,C>::element_iterator
+    // base<V,R,I,K,C>::end() {
+    //   assert("TODO: Implementation");
+    //   typedef typename element_iterator::iterable_type iterable_type;
+    //
+    //   iterable_type ikey(this->m_dims);
+    //   ikey.m_overflow = true;
+    //   element_iterator dst(ikey, *this);
+    //
+    //   return dst;
+    // }
 
-      iterable_type ikey(this->m_dims);
-      ikey.m_overflow = true;
-      element_iterator dst(ikey, *this);
 
-      return dst;
-    }
     // template< class V, std::size_t R, class I, class K, class C>
     // typename base<V,R,I,K,C>::element_const_iterator
     // base<V,R,I,K,C>::end() const {
@@ -212,6 +220,7 @@ namespace torment {
     template< class V, std::size_t R, class I, class K, class C>
     typename base<V,R,I,K,C>::value_type const&
     base<V,R,I,K,C>::operator[](key_type const& key) const {
+
       if constexpr(R == 1) {
         if(!(key < this->shape())) {
           std::stringstream ss;
@@ -230,9 +239,10 @@ namespace torment {
               << "shape = " << this->shape() << ")";
           throw std::out_of_range(ss.str());
         }
+
       }
 
-      auto data = static_cast<container_type const&>(*this);
+      auto const& data = static_cast<container_type const&>(*this);
       if(auto it = data.find(key); it != data.end()) {
         return it->second;
       } else {
@@ -277,7 +287,8 @@ namespace torment {
     template< class V, std::size_t R, class I, class K, class C>
     base<V,R,I,K,C>::element_reference::operator base<V,R,I,K,C>::value_type() const {
       auto it = this->m_chain.find(this->m_key);
-      auto dst = it != this->m_chain.end() ? it->second : this->m_chain.dval;
+      auto dst = it != this->m_chain.end() ? it->second : this->m_chain.m_dval;
+
       return dst;
     }
 
@@ -293,6 +304,7 @@ namespace torment {
 
       return *this;
     }
+
 
     template< class V, std::size_t R, class I, class K, class C>
     base<V,R,I,K,C>::element_iterator::element_iterator(
@@ -332,12 +344,16 @@ namespace torment {
       return dst;
     }
 
+
+#   ifdef _IOSTREAM_ // {
+
     template< class V, std::size_t R, class I, class K, class C>
     std::ostream& operator<< (
       std::ostream &os,
       base<V,R,I,K,C> const &arr
     ) {
       typedef radix::unsigned_mixed_system<I, R> ums;
+      auto width = os.width();
 
 
       if constexpr(R == 0) {
@@ -397,75 +413,83 @@ namespace torment {
         }
 
       } else if constexpr(R == 1) {
-        os << "[";
+        os << std::setw(0) << "[";
 
         if(arr.shape() != 0) os << arr[0];
         for(I i = 1; i < arr.shape(); i++) {
-          os << ", " << arr[i];
-        }
-
-        os << "]";
-      } else if constexpr(R == 2) { // matrix form array
-        auto s = arr.shape();
-
-        os << "[";
-
-        if(arr.n_elem() != 0) {
-          for(I i = 0; i < s[0]; i++) {
-            os  << (i == 0 ? " " : "  ")
-                << "[" << arr[{i, 0}];
-            for(I j = 1; j < s[1]; j++) {
-              os << ", " << arr[{i, j}];
-            }
-            os << "]" << (i == (s[0]-1) ? " " : "\n");
-          }
+          os << ", " << std::setw(width) << arr[i];
         }
 
         os << "]";
       } else {
-        // os << "[\"TODO: implement function 'std::ostream& operator<< (...)'\n"
-        //       "         for multidimensiinal rank.                         \"]";
-        auto &s = arr.shape();
 
-        os << "[\n  ";
-        ums k(s); k--;
+        // dense::array<char const *, 1, dense::urr(R)>
+        //   left_delimeters   = {  "", "   [", "  [[", " [[["},
+        //   right_delimeters  = {", ", "],\n", "]],\n", "]]],\n"};
 
-        for(ums i(k.m_radices); i != k; i++) {
-          bool comma = true;
-          os << arr[i];
-          for(I j = 0; j != k.size()-1; j++) {
-            if(i[j] != k[j]) break;
-            comma = false;
-            os << "\n";
+        ums k(arr.shape());
+
+        os << std::setfill('[') << std::setw(R) << ""
+                  << std::setfill(' ');
+        for(auto i = k = 0; i < k.overflow(true); i++) {
+          auto j = i-1;
+
+          for(std::size_t n = k.size() - 1; n < k.size(); n--) {
+            // std::cout << (j[n] < i[n] ? left_delimeters[n] : "");
+            if(j[n] < i[n]) {
+              if(n != 0) os
+                << std::setfill(' ') << std::setw(k.size()-n) << ""
+                << std::setfill('[') << std::setw(n) << ""
+                << std::setfill(' ');
+              break;
+            }
           }
-          os << (comma ? ", " : "  ");
-          comma = true;
+
+          // os << arr[i];
+          os << std::setw(width) << arr[i];
+
+          j = i+1;
+          for(std::size_t n = 0; n < k.size(); n++) {
+            // std::cout << (i[n] < j[n] ? right_delimeters[n] : "");
+
+            if(i[n] < j[n]) {
+              if(n == 0)
+                os << ", ";
+              else os
+                << std::setfill(']') << std::setw(n+2) << ",\n"
+                << std::setfill(' ');
+            }
+          }
         };
-        os << arr[k];
+        os << std::setfill(']') << std::setw(R) << ""
+                  << std::setfill(' ');
 
-        os << "\n]";
+        /* USEFUL FOR DEBUGGING PRINT LOGIC
+        for(auto i = k = 0; i < k.overflow(true); i++) {
+          auto j = i-1;
+
+          for(std::size_t n = k.size() - 1; n < k.size(); n--) {
+            std::cout << (j[n] < i[n] ? "l" : "-");
+          }
+
+          std::cout << " " << i << " ";
+
+          j = i+1;
+          for(std::size_t n = 0; n < k.size(); n++) {
+            std::cout << (i[n] < j[n] ? "r" : "-");
+          }
+
+          std::cout << "\n";
+        };
+        */
+
       }
-      // typedef radix::unsigned_mixed_system<std::size_t> ums;
-
-      // auto n_elem = sarr.n_elem();
-
-      // if (sarr.n_elem() != 0)
-      // {
-
-      // auto k = sarr.shape();
-      // ums i(k);
-
-      // // for(auto i = k--; i < k; i++) {
-      // //   // os << "{" << i << "}: " << sarr(i);
-      // // }
-      // // os << sarr(k);
-
-      // }
 
 
       return os;
     }
 
+#   endif // } _IOSTREAM_
 
   };
 

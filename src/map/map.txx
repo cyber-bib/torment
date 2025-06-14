@@ -31,7 +31,7 @@ namespace torment {
     if(auto it = mapa.begin(); it != mapa.end()) {
       os << "{ (" << it->first << ": " << (it++)->second << ")";
       for(; it != mapa.end(); it++)
-        os << ", (" << it->first << ": " << it->second << ")";
+        os << ",\n  (" << it->first << ": " << it->second << ")";
       os << " }";
     }
     return os;

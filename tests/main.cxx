@@ -1,3 +1,7 @@
+#include <array>
+#include <sstream>
+#pragma region include-headers {
+
 #include <memory>
 #include <numeric>
 #include <functional>
@@ -9,6 +13,7 @@
 
 #include "gtest/gtest.h"
 
+#pragma endregion } include-headers
 #pragma region forward-decls {
 
 // template<class T>
@@ -68,44 +73,7 @@ void* operator new(std::size_t size) {
 #pragma endregion } forward-decls
 #pragma region DenseArrayTests {
 
-TEST(MixedRadixSystemTests, SimpleTest) {
-  using namespace std;
-  using namespace torment::dense;
 
-  typedef std::uint64_t u64;
-
-  mrns<u64, 2> grid({3, 3});
-
-  mrns<mrns<u64, 2>, 2> k({grid, grid});
-
-  //
-  // while(k+1)
-  // k = k + 1;
-  // std::cout << k << "\n";
-  // u2rad<std::size_t> grid({3, 3});
-  // u2rad<u2rad<std::size_t>> k({grid, grid});
-  //
-  // for(auto i = k = {0, 0}; i < k.overflow(true); i++) {
-  //   std::cout << i << "\n";
-  // }
-  //
-  // typedef dense::array<std::uint16_t, 2> index_type;
-  //
-  // base<float, 2, index_type> m({}, 0);
-  //
-  // int cnt = 0;
-  // for(auto it = m.begin(); it != m.end(); it++) {
-  //   *it = cnt++;
-  // }
-  // v = { {{2, 0}, 1.0f},
-  //       {{2, 1}, 2.0f},
-  //       {{2, 2}, 3.0f} };
-  //
-  // std::cout << m << "\n";
-  //
-  // base<float> v(3, 0);
-  // std::cout << v << "\n";
-}
 TEST(DenseArrayTests, ShapeStructTest) {
   using namespace torment::dense;
 
@@ -239,24 +207,160 @@ TEST(DenseArrayTests, StreamTest) {
   EXPECT_EQ(ss.str(), str);
 }
 
+TEST(MixedRadixSystemTests, SimpleTest) {
+  using namespace std;
+  using namespace torment::dense;
+
+  typedef std::uint64_t u64;
+
+  mrns<u64, 2> grid({3, 3});
+  base<u64, 4> grid_squared_size = {3, 3, 3, 3};
+
+  // mrns<mrns<u64, 2>, 2> k({3, 3, 3, 3});
+  mrns<mrns<u64, 2>, 2> k({grid, grid});
+
+  // std::cout << "grid^2: " << *k.m_radices << "\n";
+  EXPECT_EQ(*k.m_radices, grid_squared_size);
+
+  for(auto i = k = 0; i < k.overflow(true); i++) {
+    EXPECT_LT(i, k);
+  }
+
+    // std::cout << i << "\n";
+
+  // while(k+1)
+  // k = k + 1;
+  // std::cout << k << "\n";
+  // u2rad<std::size_t> grid({3, 3});
+  // u2rad<u2rad<std::size_t>> k({grid, grid});
+  //
+  // for(auto i = k = {0, 0}; i < k.overflow(true); i++) {
+  //   std::cout << i << "\n";
+  // }
+  //
+  // typedef dense::array<std::uint16_t, 2> index_type;
+  //
+  // base<float, 2, index_type> m({}, 0);
+  //
+  // int cnt = 0;
+  // for(auto it = m.begin(); it != m.end(); it++) {
+  //   *it = cnt++;
+  // }
+  // v = { {{2, 0}, 1.0f},
+  //       {{2, 1}, 2.0f},
+  //       {{2, 2}, 3.0f} };
+  //
+  // std::cout << m << "\n";
+  //
+  // base<float> v(3, 0);
+  // std::cout << v << "\n";
+}
+
+TEST(SparseArrayTests, StreamTest) {
+
+  using namespace torment;
+  using namespace torment::sparse;
+
+  typedef std::uint64_t u64;
+  typedef radix::unsigned_mixed_system<std::size_t, 2> ums2;
+  typedef radix::unsigned_mixed_system<std::size_t, 3> ums3;
+  typedef radix::unsigned_mixed_system<std::size_t, 4> ums4;
+
+
+  base<int, 1> b1(3);
+  base<int, 2> b2({3, 3});
+  base<int, 3> b3({3, 3, 3});
+  base<int, 4> b4({2, 2, 2, 2});
+
+  { int counter = 0;
+    auto k = b1.shape();
+    for(auto i = k = 0; i < k; i++)
+      b1[i] = counter++;
+  }
+
+  { int counter = 0;
+    ums2 k(b2.shape());
+    for(auto i = k = 0; i < k.overflow(true); i++)
+      b2[i] = counter++;
+  }
+
+  { int counter = 0;
+    ums3 k(b3.shape());
+    for(auto i = k = 0; i < k.overflow(true); i++)
+      b3[i] = counter++;
+  }
+
+  { int counter = 0;
+    ums4 k(b4.shape());
+    for(auto i = k = 0; i < k.overflow(true); i++)
+      b4[i] = counter++;
+  }
+
+  std::stringstream bx_ss;
+  std::string
+    b1_str =  "[0,  0,  0]",
+    b2_str =  "[[ 0,  1,  2],\n"
+              " [ 3,  4,  5],\n"
+              " [ 6,  7,  8]]",
+    b3_str =  "[[[ 0,  1,  2],\n"
+              "  [ 3,  4,  5],\n"
+              "  [ 6,  7,  8]],\n"
+              " [[ 9, 10, 11],\n"
+              "  [12, 13, 14],\n"
+              "  [15, 16, 17]],\n"
+              " [[18, 19, 20],\n"
+              "  [21, 22, 23],\n"
+              "  [24, 25, 26]]]",
+    b4_str =  "[[[[ 0,  1],\n"
+              "   [ 2,  3]],\n"
+              "  [[ 4,  5],\n"
+              "   [ 6,  7]]],\n"
+              " [[[ 8,  9],\n"
+              "   [10, 11]],\n"
+              "  [[12, 13],\n"
+              "   [14, 15]]]]";
+
+  bx_ss.str("");
+  bx_ss << std::setw(2) << b1;
+  EXPECT_EQ(bx_ss.str(), b1_str);
+
+  bx_ss.str("");
+  bx_ss << std::setw(2) << b2;
+  EXPECT_EQ(bx_ss.str(), b2_str);
+
+  bx_ss.str("");
+  bx_ss << std::setw(2) << b3;
+  EXPECT_EQ(bx_ss.str(), b3_str);
+
+  bx_ss.str("");
+  bx_ss << std::setw(2) << b4;
+  EXPECT_EQ(bx_ss.str(), b4_str);
+
+
+
+
+
+
+}
+
+
 TEST(SparseArrayTests, Dummy) {
   typedef std::uint64_t u64;
 
+  using namespace torment;
   using namespace torment::sparse;
 
   auto &cout = std::cout;
 
   mrns<u64, 2> grid({3, 3});
-  mrns<mrns<u64, 2>, 2> k({grid, grid});
-
-  cout << k << "\n";
-  // kalt = 0;
-
 
   // array<int, 2, mrns<u64, 2>>::base_type::index_type idx({1, 2});
-  // array<int, 2, mrns<u64, 2>> v1({grid, grid}, 0);
-  array<int, 2, mrns<u64, 2>> v1(k, 0);
+  // array<int, 2, dense::base<u64, 2>> v1({grid, grid}, 0);
 
+  // cout << "typeid(v1.m_dims): " << typeid(v1.m_dims).name() << "\n";
+  // cout << "v1.m_dims: " << v1.m_dims << "\n";
+
+  // array<int, 2, mrns<u64, 2>> v1(k, 0);
   // array<int, 2, mrns<u64, 2>>::base_type::index_type idx;
   // array<int, 2, mrns<u64, 2>>::base_type::key_type key;
 

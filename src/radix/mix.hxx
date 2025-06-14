@@ -1,5 +1,6 @@
 #pragma once
 
+#include <initializer_list>
 #include <memory>
 #include <boost/operators.hpp>
 #include "array/dense/base.hxx"
@@ -28,7 +29,7 @@ namespace torment {
 
       using base_type::operator=;
 
-      // bool m_overflow;
+      bool m_overflow;
 
       // unsigned_mixed_system(unsigned_mixed_system const &bases);
       unsigned_mixed_system();
@@ -60,16 +61,38 @@ namespace torment {
       bool operator<(value_type const &val) const;
       bool operator>(value_type const &val) const;
 
-      // bool operator<(unsigned_mixed_system const &val) const;
-      // bool operator<(unsigned_mixed_system const &val) const;
+      bool operator<(unsigned_mixed_system const &val) const;
 
 
       // protected:
         std::shared_ptr<base_type> m_radices;
-      private:
+      protected:
         void init();
     };
 
+    // mrns<mrns<u64, 2>, 2> k({grid, grid});
+    template<class T, std::size_t Sz, std::size_t Sy>
+    struct unsigned_mixed_system<unsigned_mixed_system<T, Sy>, Sz>
+    : unsigned_mixed_system<T, Sy*Sz>
+      // boost::incrementable<unsigned_mixed_system<unsigned_mixed_system<T, Sy>, Sz>>,
+      // boost::decrementable<unsigned_mixed_system<unsigned_mixed_system<T, Sy>, Sz>>,
+      // boost::additive<unsigned_mixed_system<unsigned_mixed_system<T, Sy>, Sz>>,
+      // boost::equivalent<unsigned_mixed_system<unsigned_mixed_system<T, Sy>, Sz>>
+    {
+      typedef unsigned_mixed_system<T, Sy*Sz> base_type;
+      // typedef dense::base<T, Sz> base_type;
+      typedef base_type::base_type array_type;
+      typedef base_type::value_type value_type;
+      typedef base_type::list_type list_type;
+
+      using base_type::base_type;
+      unsigned_mixed_system(
+        std::initializer_list<unsigned_mixed_system<T, Sy>> const &helper_list);
+      // using base_type::operator<;
+      using base_type::operator=;
+      // typedef base_type::value_type value_type;
+      // typedef base_type::list_type list_type;
+    };
   } // namespace radix
 
 } // namespace torment

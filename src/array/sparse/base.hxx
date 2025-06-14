@@ -33,8 +33,6 @@ namespace torment {
 
 
 
-    #pragma region base-definition {
-
     template< class Value,
               std::size_t Rank = 0,
               class Index = std::size_t,
@@ -111,10 +109,10 @@ namespace torment {
       struct element_iterator;
       // struct element_const_iterator;
 
-      element_iterator begin();
+      // element_iterator begin();
       // element_const_iterator begin() const;
 
-      element_iterator end();
+      // element_iterator end();
       // element_const_iterator end() const;
 
       struct element_reference;
@@ -122,11 +120,11 @@ namespace torment {
       value_type const& operator[](key_type const& key) const;
       // std::size_t size() const;
 
-      #ifdef _IOSTREAM_ // {
+  #   ifdef _IOSTREAM_ // {
 
       friend std::ostream& operator<< <Value, Rank, Index, Key, Cont>(std::ostream &os, base const &sarr);
 
-      #endif // } _IOSTREAM_
+  #   endif // } _IOSTREAM_
 
       template<std::size_t R = Rank, typename = std::enable_if_t<R==0>>
       bool is_list_valid(list_type const &list) const;
@@ -134,8 +132,7 @@ namespace torment {
       template<std::size_t R = Rank, typename = std::enable_if_t<R==0>>
       void throw_if_list_not_valid(list_type const &list) const;
     };
-    #pragma endregion } base-definition
-    #pragma region element_reference-definition {
+
 
     template<class V, std::size_t R, class I, class K, class C>
     struct base<V,R,I,K,C>::element_reference {
@@ -148,8 +145,6 @@ namespace torment {
       element_reference& operator=(value_type const& value);
     };
 
-    #pragma endregion } element_reference-definition
-    #pragma region element_iterator-definition {
 
     // template<class V, std::size_t R, class I, class K, class C>
     // struct base<V,R,I,K,C>::element_iterator_base {
@@ -202,7 +197,8 @@ namespace torment {
     // }
 
 
-    #pragma endregion } element_iterator-definition
+
+
   };
 
 };

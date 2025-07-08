@@ -9,15 +9,18 @@ namespace torment {
 
     template<class V, std::size_t N, class K> struct array;
 
-    #ifdef _IOSTREAM_ // {
+#   ifdef _IOSTREAM_ //[
 
     // template< class V, std::size_t N, class K>
     // std::ostream& operator<<(std::ostream &os, array<V, N, K> const &arr);
 
-    #endif // } _IOSTREAM_
+#   endif //] _IOSTREAM_
 
-    #pragma region array-definiton {
-
+#   pragma region array-definiton //[
+    
+    /**
+     * @brief
+     */
     template<class V, std::size_t R = 1, class K = std::size_t>
     struct array : base<V,R,K> {
 
@@ -27,15 +30,15 @@ namespace torment {
       using base_type::base_type;
       using base_type::operator=;
 
-      #ifdef _IOSTREAM_ // {
+      #ifdef _IOSTREAM_ //[
 
       // friend std::ostream& operator<< <V,R,K>(std::ostream &os, array const &sarr);
 
-      #endif // } _IOSTREAM_
+      #endif //] _IOSTREAM_
 
     };
 
-    #pragma endregion } array-definiton
+#   pragma endregion //] array-definiton
 
   } // namespace sparse
 

@@ -48,9 +48,9 @@ namespace torment {
 
     template< class V, std::size_t R, class I, class K, class C>
     base<V,R,I,K,C>::base(
-          key_type dims,
-          value_type const& default_val,
-          list_type const& list  )
+      key_type dims,
+      value_type const& default_val,
+      list_type const& list  )
     : container_type(list), m_dims(dims), m_dval(default_val) {
 
       if constexpr(R == 0) {
@@ -67,6 +67,9 @@ namespace torment {
             break;
         }
       }
+      // else if constexpr(R == 2) {
+      //   std::cout << "constructor (dims): " << dims << "\n";
+      // }
     }
 
     // template< class V, std::size_t R, class I, class K, class C>
@@ -161,55 +164,66 @@ namespace torment {
     }
 
 
-    // template< class V, std::size_t R, class I, class K, class C>
-    // typename base<V,R,I,K,C>::element_iterator
-    // base<V,R,I,K,C>::begin() {
-    //   assert("TODO: Implementation");
-    //   typedef typename element_iterator::iterable_type iterable_type;
+    template< class V, std::size_t R, class I, class K, class C>
+    typename base<V,R,I,K,C>::element_iterator
+    base<V,R,I,K,C>::begin() {
+      // assert("TODO: Implementation");
+      typedef typename element_iterator::iterable_type iterable_type;
 
-    //   iterable_type ikey(this->m_dims);
-    //   element_iterator dst(ikey, *this);
+      iterable_type ikey(this->m_dims);
+      ikey = 0;
 
-    //   return dst;
-    // }
+      element_iterator dst(ikey, *this);
 
-    // template< class V, std::size_t R, class I, class K, class C>
-    // typename base<V,R,I,K,C>::element_const_iterator
-    // base<V,R,I,K,C>::begin() const {
-    //   assert("TODO: Implementation");
-    //   typedef typename element_const_iterator::iterable_type iterable_type;
+      return dst;
+    }
 
-    //   iterable_type ikey(this->m_dims);
-    //   element_const_iterator dst(ikey, *this);
+    template< class V, std::size_t R, class I, class K, class C>
+    typename base<V,R,I,K,C>::element_const_iterator
+    base<V,R,I,K,C>::begin() const {
+      // assert("TODO: Implementation");
+      typedef typename element_const_iterator::iterable_type iterable_type;
 
-    //   return dst;
-    // }
+      iterable_type ikey(this->m_dims);
+      ikey = 0;
 
-    // template< class V, std::size_t R, class I, class K, class C>
-    // typename base<V,R,I,K,C>::element_iterator
-    // base<V,R,I,K,C>::end() {
-    //   assert("TODO: Implementation");
-    //   typedef typename element_iterator::iterable_type iterable_type;
-    //
-    //   iterable_type ikey(this->m_dims);
-    //   ikey.m_overflow = true;
-    //   element_iterator dst(ikey, *this);
-    //
-    //   return dst;
-    // }
+      element_const_iterator dst(ikey, *this);
+
+      return dst;
+    }
+
+    template< class V, std::size_t R, class I, class K, class C>
+    typename base<V,R,I,K,C>::element_iterator
+    base<V,R,I,K,C>::end() {
+      // assert("TODO: Implementation");
+      typedef typename element_iterator::iterable_type iterable_type;
+
+      iterable_type ikey(this->m_dims);
+
+      ikey = 0;
+      ikey.m_overflow = true;
+
+      element_iterator dst(ikey, *this);
+
+      return dst;
+    }
 
 
-    // template< class V, std::size_t R, class I, class K, class C>
-    // typename base<V,R,I,K,C>::element_const_iterator
-    // base<V,R,I,K,C>::end() const {
-    //   assert("TODO: Implementation");
-    //   typedef typename element_const_iterator::iterable_type iterable_type;
+    template< class V, std::size_t R, class I, class K, class C>
+    typename base<V,R,I,K,C>::element_const_iterator
+    base<V,R,I,K,C>::end() const {
+      // assert("TODO: Implementation");
+      typedef typename element_const_iterator::iterable_type iterable_type;
 
-    //   iterable_type ikey(this->m_dims);
-    //   element_const_iterator dst(ikey, *this);
+      iterable_type ikey(this->m_dims);
 
-    //   return dst;
-    // }
+      ikey = 0;
+      ikey.m_overflow = true;
+
+      element_const_iterator dst(ikey, *this);
+
+      return dst;
+    }
 
     template< class V, std::size_t R, class I, class K, class C>
     typename base<V,R,I,K,C>::element_reference
@@ -305,7 +319,6 @@ namespace torment {
       return *this;
     }
 
-
     template< class V, std::size_t R, class I, class K, class C>
     base<V,R,I,K,C>::element_iterator::element_iterator(
       iterable_type const& ikey,
@@ -332,8 +345,9 @@ namespace torment {
     base<V,R,I,K,C>::element_iterator::operator<(
       element_iterator const &rhs
     ) const {
-      bool dst  = this->m_ikey.m_overflow < rhs.m_ikey.m_overflow ? true :
-                    this->m_ikey < rhs.m_ikey;
+      bool dst = this->m_ikey < rhs.m_ikey;
+      // bool dst  = this->m_ikey.m_overflow < rhs.m_ikey.m_overflow ? true :
+      //               this->m_ikey < rhs.m_ikey;
 
       // std::cout << "lhs overflow: " << this->m_ikey.m_overflow << ", "
       //           << "rhs overflow: " << rhs.m_ikey.m_overflow << "\n"
@@ -434,13 +448,16 @@ namespace torment {
         for(auto i = k = 0; i < k.overflow(true); i++) {
           auto j = i-1;
 
-          for(std::size_t n = k.size() - 1; n < k.size(); n--) {
+          for(std::size_t n = k.size()-1; n < k.size(); n--) {
+          // for(std::size_t n = k.size(); n-- > 0;) {
             // std::cout << (j[n] < i[n] ? left_delimeters[n] : "");
             if(j[n] < i[n]) {
-              if(n != 0) os
-                << std::setfill(' ') << std::setw(k.size()-n) << ""
-                << std::setfill('[') << std::setw(n) << ""
-                << std::setfill(' ');
+              if(n != 0) {
+                // os  << j << i << ": ";
+                os  << std::setfill(' ') << std::setw(k.size()-n) << ""
+                    << std::setfill('[') << std::setw(n) << ""
+                    << std::setfill(' ');
+              }
               break;
             }
           }
@@ -464,24 +481,24 @@ namespace torment {
         os << std::setfill(']') << std::setw(R) << ""
                   << std::setfill(' ');
 
-        /* USEFUL FOR DEBUGGING PRINT LOGIC
-        for(auto i = k = 0; i < k.overflow(true); i++) {
-          auto j = i-1;
+        // USEFUL FOR DEBUGGING PRINT LOGIC
+        // using namespace std::string_literals;
+        // for(auto i = k = 0; i < k.overflow(true); i++) {
+        //   auto j = i-1;
 
-          for(std::size_t n = k.size() - 1; n < k.size(); n--) {
-            std::cout << (j[n] < i[n] ? "l" : "-");
-          }
+        //   for(std::size_t n = k.size() - 1; n < k.size(); n--) {
+        //     std::cout << (j[n] < i[n] ? std::to_string(n) : "-"s);
+        //   }
 
-          std::cout << " " << i << " ";
+        //   std::cout << " " << j << " | " << i << " ";
 
-          j = i+1;
-          for(std::size_t n = 0; n < k.size(); n++) {
-            std::cout << (i[n] < j[n] ? "r" : "-");
-          }
+        //   j = i+1;
+        //   for(std::size_t n = 0; n < k.size(); n++) {
+        //     std::cout << (i[n] < j[n] ? "r" : "-");
+        //   }
 
-          std::cout << "\n";
-        };
-        */
+        //   std::cout << "\n";
+        // };
 
       }
 

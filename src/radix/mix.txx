@@ -1,7 +1,7 @@
 #pragma once
 
 #include "mix.hxx"
-#include "array/dense/array.txx"
+#include "array/dense/base.txx"
 
 #include <algorithm>
 #include <memory>
@@ -124,15 +124,13 @@ void unsigned_mixed_system<T,Sz>::init() {
     for(auto &e : *this->m_radices)
         dst *= e;
 
-    dst;
-
     return dst;
   }
 
 
   template<class T, std::size_t Sz> std::size_t
   unsigned_mixed_system<T,Sz>::add(
-    std::size_t const &val,
+    value_type const &val,
     std::size_t i
   ) {
     // std:size_t  trad = this->global_radix(),
@@ -174,7 +172,7 @@ void unsigned_mixed_system<T,Sz>::init() {
 
   template<class T, std::size_t Sz>
   unsigned_mixed_system<T,Sz>&
-  unsigned_mixed_system<T,Sz>::operator+=(std::size_t carry) {
+  unsigned_mixed_system<T,Sz>::operator+=(value_type carry) {
     // static_assert(std::is_integral_v<T>, "T is not an integral type" );
     // static_assert(std::is_unsigned_v<T>, "T is not an unsigned integral type");
 
@@ -186,8 +184,10 @@ void unsigned_mixed_system<T,Sz>::init() {
   }
   template<class T, std::size_t Sz>
   unsigned_mixed_system<T,Sz>&
-  unsigned_mixed_system<T,Sz>::operator-=(std::size_t carry) {
-    this->add(-carry, 0);
+  unsigned_mixed_system<T,Sz>::operator-=(value_type carry) {
+    std:size_t  trad = this->global_radix();
+
+    this->add(trad - carry, 0);
     return *this;
   }
 

@@ -15,7 +15,7 @@ namespace torment {
 
     template<class Index, std::size_t Rank>
     using key_type = std::conditional_t<  is_multidimentional<Rank>,
-                                          ::torment::dense::base<Index, Rank>,
+                                          ::torment::dense::smart_container<Index, Rank>,
                                           Index  >;
 
     template< class       Value,
@@ -105,15 +105,15 @@ namespace torment {
       value_type const& default_value() const;
       void default_value(value_type const&);
 
-      // struct element_iterator_base;
+      struct element_iterator_base;
       struct element_iterator;
-      // struct element_const_iterator;
+      struct element_const_iterator;
 
-      // element_iterator begin();
-      // element_const_iterator begin() const;
+      element_iterator begin();
+      element_const_iterator begin() const;
 
-      // element_iterator end();
-      // element_const_iterator end() const;
+      element_iterator end();
+      element_const_iterator end() const;
 
       struct element_reference;
       element_reference operator[](key_type const& key);

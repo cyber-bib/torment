@@ -13,7 +13,7 @@ namespace torment {
 
     template<class T, std::size_t Sz = 0>
     struct unsigned_mixed_system
-    : dense::base<T, Sz>,
+    : dense::smart_container<T, Sz>,
       boost::incrementable<unsigned_mixed_system<T, Sz>>,
       boost::decrementable<unsigned_mixed_system<T, Sz>>,
       boost::additive<unsigned_mixed_system<T, Sz>, std::size_t>,
@@ -23,7 +23,7 @@ namespace torment {
       // static_assert(std::is_integral_v<T>, "T is not an integral type" );
       // static_assert(std::is_unsigned_v<T>, "T is not an unsigned integral type");
 
-      typedef dense::base<T, Sz> base_type;
+      typedef dense::smart_container<T, Sz> base_type;
       typedef base_type::value_type value_type;
       typedef base_type::list_type list_type;
 
@@ -49,14 +49,14 @@ namespace torment {
       void radices(base_type const& radices);
       std::size_t global_radix() const;
 
-      std::size_t add(std::size_t const &val, std::size_t i = 0);
+      std::size_t add(value_type const &val, std::size_t i = 0);
 
       unsigned_mixed_system& operator++();
       unsigned_mixed_system& operator--();
 
 
-      unsigned_mixed_system& operator+=(std::size_t val);
-      unsigned_mixed_system& operator-=(std::size_t val);
+      unsigned_mixed_system& operator+=(value_type val);
+      unsigned_mixed_system& operator-=(value_type val);
 
       bool operator<(value_type const &val) const;
       bool operator>(value_type const &val) const;
@@ -90,6 +90,8 @@ namespace torment {
         std::initializer_list<unsigned_mixed_system<T, Sy>> const &helper_list);
       // using base_type::operator<;
       using base_type::operator=;
+      // unsigned_mixed_system& operator=(value_type const& val);
+      // unsigned_mixed_system& operator=(list_type const &list);
       // typedef base_type::value_type value_type;
       // typedef base_type::list_type list_type;
     };

@@ -1,6 +1,9 @@
 #include <array>
 #include <sstream>
-#pragma region include-headers {
+
+#pragma region include-headers [
+
+#include <boost/preprocessor.hpp>
 
 #include <memory>
 #include <numeric>
@@ -8,22 +11,42 @@
 #include <iostream>
 
 #include "radix/mix.txx"
-#include "array/dense/array.txx"
+#include "array/dense/base.txx"
 #include "array/sparse/array.txx"
 
 #include "gtest/gtest.h"
 
-#pragma endregion } include-headers
-#pragma region forward-decls {
+#pragma endregion ] include-headers
+
+#define PRINT(os_code) std::cout << #os_code ": " << os_code
+#define PRINTLN(os_code) PRINT(os_code) << "\n"
+
+#define PRETTY_PRINT_1(os_code) \
+  std::cout << #os_code ":\n" << os_code << "\n"
+#define PRETTY_PRINT_2(os_code, os_setw) \
+  std::cout << #os_code ":\n" << std::setw(os_setw) << os_code << "\n"
+
+#if !BOOST_PP_VARIADICS_MSVC
+# define PRETTY_PRINT(...) BOOST_PP_OVERLOAD(PRETTY_PRINT_,__VA_ARGS__)(__VA_ARGS__)
+#else
+# define MACRO_ADD_NUMBERS(...) \
+  BOOST_PP_CAT(BOOST_PP_OVERLOAD(PRETTY_PRINT_,__VA_ARGS__)(__VA_ARGS__),BOOST_PP_EMPTY())
+#endif
+
+
+#pragma region forward-decls [
 
 // template<class T>
-// using dense = torment::dense::base<T, 0>;
+// using dense = torment::dense::smart_container<T, 0>;
 
 template<std::size_t N>
-using ivec = torment::dense::array<int, 1, torment::dense::urr(N)>;
+using ivec = torment::dense::base<int, 1, torment::dense::urr(N)>;
 
 template<std::size_t R, std::size_t C>
-using imat = torment::dense::array<int, 2, torment::dense::urr(R, C)>;
+using imat = torment::dense::base<int, 2, torment::dense::urr(R, C)>;
+
+template<std::size_t N>
+using ispec = torment::sparse::array<int, 1>;
 
 template<class T, std::size_t N = 0>
 using mrns = torment::radix::unsigned_mixed_system<T, N>;
@@ -70,8 +93,8 @@ void* operator new(std::size_t size) {
   return malloc(size);
 }
 
-#pragma endregion } forward-decls
-#pragma region DenseArrayTests {
+#pragma endregion ] forward-decls
+#pragma region DenseArrayTests [
 
 
 TEST(DenseArrayTests, ShapeStructTest) {
@@ -117,15 +140,15 @@ TEST(DenseArrayTests, ShapeTypeTest) {
   // typedef array<int, 1, urr(3)> ivec3;
 
   std::string _size_tn = typeid(std::size_t).name();
-  std::string _1_elem_base_tn = typeid(base<std::size_t, 1>).name();
-  std::string _2_elem_base_tn = typeid(base<std::size_t, 2>).name();
-  std::string _dynamic_base_tn = typeid(base<std::size_t, 0>).name();
+  std::string _1_elem_base_tn = typeid(smart_container<std::size_t, 1>).name();
+  std::string _2_elem_base_tn = typeid(smart_container<std::size_t, 2>).name();
+  std::string _dynamic_base_tn = typeid(smart_container<std::size_t, 0>).name();
 
   std::string _ivec0_stn = typeid(ivec<0>::shape_array_type).name();
   std::string _ivec3_stn = typeid(ivec<3>::shape_array_type).name();
   std::string _imat00_stn = typeid(imat<0,0>::shape_array_type).name();
   std::string _imat33_stn = typeid(imat<3,3>::shape_array_type).name();
-  std::string _itensor_stn = typeid(array<int>::shape_array_type).name();
+  std::string _itensor_stn = typeid(base<int>::shape_array_type).name();
 
   EXPECT_EQ(_ivec0_stn, _size_tn);
   EXPECT_EQ(_ivec3_stn, _size_tn);
@@ -140,16 +163,16 @@ TEST(DenseArrayTests, ShapeValueTest) {
 
   constexpr auto _33 = urr(3, 3);
 
-  array<int, 2, _33> v_frfs = {
+  base<int, 2, _33> v_frfs = {
     1, 0, 0,
     0, 1, 0,
     0, 0, 1  }; // static array
 
-  array<int, 2>::shape_array_type _24 = {2, 4};
-  array<int, 2> v_frds(_24, 1);
+  base<int, 2>::shape_array_type _24 = {2, 4};
+  base<int, 2> v_frds(_24, 1);
 
-  array<int>::shape_array_type _44 = {4, 4};
-  array<int> v_heap(_44);
+  base<int>::shape_array_type _44 = {4, 4};
+  base<int> v_heap(_44);
 
   // mem.print();
 
@@ -190,7 +213,7 @@ TEST(DenseArrayTests, StreamTest) {
     " [0, 0, 0, 4]]";
   EXPECT_EQ(ss.str(), str);
 
-  array<int> tensor(base<std::size_t>(4, 2));
+  base<int> tensor(smart_container<std::size_t>(4, 2));
   for(int counter = 0; auto &e: tensor)
     e = counter++ % 2;
   ss.str("");
@@ -207,6 +230,24 @@ TEST(DenseArrayTests, StreamTest) {
   EXPECT_EQ(ss.str(), str);
 }
 
+#pragma endregion ] DenseArrayTests
+
+TEST(MixedRadixSystemTests, Subtract) {
+  using namespace std;
+  using namespace torment::dense;
+
+  typedef std::uint64_t u64;
+
+  mrns<u64, 4> num({3, 3, 3, 3});
+
+  auto res = num;
+
+  num = {0, 0, 0, 1};
+  res = {2, 2, 2, 0};
+  num -= 1;
+
+  EXPECT_EQ(num, res);
+}
 TEST(MixedRadixSystemTests, SimpleTest) {
   using namespace std;
   using namespace torment::dense;
@@ -214,7 +255,7 @@ TEST(MixedRadixSystemTests, SimpleTest) {
   typedef std::uint64_t u64;
 
   mrns<u64, 2> grid({3, 3});
-  base<u64, 4> grid_squared_size = {3, 3, 3, 3};
+  smart_container<u64, 4> grid_squared_size = {3, 3, 3, 3};
 
   // mrns<mrns<u64, 2>, 2> k({3, 3, 3, 3});
   mrns<mrns<u64, 2>, 2> k({grid, grid});
@@ -255,6 +296,8 @@ TEST(MixedRadixSystemTests, SimpleTest) {
   // base<float> v(3, 0);
   // std::cout << v << "\n";
 }
+
+#pragma region SparseArrayTests [
 
 TEST(SparseArrayTests, StreamTest) {
 
@@ -336,13 +379,80 @@ TEST(SparseArrayTests, StreamTest) {
   bx_ss << std::setw(2) << b4;
   EXPECT_EQ(bx_ss.str(), b4_str);
 
-
-
-
-
-
 }
+TEST(SparseArrayTests, IteratorTest) {
+  using namespace torment;
+  using namespace torment::sparse;
 
+  array<int, 4> v1({3, 3, 3, 3});
+
+  int count = 0;
+
+  for(auto it = v1.begin(); it != v1.end(); it++) {
+    ASSERT_LT(count++, v1.n_elem());
+  }
+
+  EXPECT_EQ(count, v1.n_elem());
+}
+TEST(SparseArrayTests, ElementReferenceTest) {
+  using namespace torment;
+  using namespace torment::sparse;
+
+  array<int, 4> v1({3,3,3,3});
+
+  int count = 0;
+  for(auto it = v1.begin(); it != v1.end(); it++) {
+    ASSERT_LT(count, v1.n_elem());
+    *it = count % 2 == 0 ? count : 0;
+    count++;
+  }
+  EXPECT_EQ(v1.size(), 40);
+
+  std::string str =   "[[[[ 0,  0,  2],\n"
+                      "   [ 0,  4,  0],\n"
+                      "   [ 6,  0,  8]],\n"
+                      "  [[ 0, 10,  0],\n"
+                      "   [12,  0, 14],\n"
+                      "   [ 0, 16,  0]],\n"
+                      "  [[18,  0, 20],\n"
+                      "   [ 0, 22,  0],\n"
+                      "   [24,  0, 26]]],\n"
+                      " [[[ 0, 28,  0],\n"
+                      "   [30,  0, 32],\n"
+                      "   [ 0, 34,  0]],\n"
+                      "  [[36,  0, 38],\n"
+                      "   [ 0, 40,  0],\n"
+                      "   [42,  0, 44]],\n"
+                      "  [[ 0, 46,  0],\n"
+                      "   [48,  0, 50],\n"
+                      "   [ 0, 52,  0]]],\n"
+                      " [[[54,  0, 56],\n"
+                      "   [ 0, 58,  0],\n"
+                      "   [60,  0, 62]],\n"
+                      "  [[ 0, 64,  0],\n"
+                      "   [66,  0, 68],\n"
+                      "   [ 0, 70,  0]],\n"
+                      "  [[72,  0, 74],\n"
+                      "   [ 0, 76,  0],\n"
+                      "   [78,  0, 80]]]]";
+  std::stringstream ss;
+  ss << std::setw(2) << v1;
+
+  EXPECT_EQ(ss.str(), str);
+}
+TEST(SparseArrayTests, RangedForLoopTest) {
+  using namespace torment;
+  using namespace torment::sparse;
+
+  typedef std::uint64_t u64;
+
+  array<int, 4> v1({3, 3, 3, 3});
+
+  for(int cnt = 0; auto e : v1)
+    e = cnt++;
+
+  PRETTY_PRINT(v1, 2);
+}
 
 TEST(SparseArrayTests, Dummy) {
   typedef std::uint64_t u64;
@@ -354,19 +464,83 @@ TEST(SparseArrayTests, Dummy) {
 
   mrns<u64, 2> grid({3, 3});
 
+  // cout << "grid: " << *grid.m_radices << "\n";
+  PRINTLN(*grid.m_radices);
+
   // array<int, 2, mrns<u64, 2>>::base_type::index_type idx({1, 2});
-  // array<int, 2, dense::base<u64, 2>> v1({grid, grid}, 0);
+  array<int, 2, dense::smart_container<u64, 2>> v1({*grid.m_radices, *grid.m_radices}, 0);
+
+
+
+  // decltype(v1)::index_type idx;
+  // decltype(v1)::key_type idk;
 
   // cout << "typeid(v1.m_dims): " << typeid(v1.m_dims).name() << "\n";
-  // cout << "v1.m_dims: " << v1.m_dims << "\n";
+  // cout << "v1.m_dims: " << v1.shape() << "\n";
+  // PRINTLN(v1.shape());
+
+  // cout << v1[{{0,0}, {0,0}}] << "\n";
 
   // array<int, 2, mrns<u64, 2>> v1(k, 0);
   // array<int, 2, mrns<u64, 2>>::base_type::index_type idx;
   // array<int, 2, mrns<u64, 2>>::base_type::key_type key;
 
-  // cout << v1 << "\n"; //this should print a 9x9 grid
+            //  cout << v1 << "\n"; //this should print a 9x9 grid
+  //                  ^
+  //                  |
+  //                  |
+  // this -+ is that -+
+  //       |
+  //       |
+  //       v
+  //
 
+  // auto width = cout.width();
+
+  // // if(std::is_integral_v<decltype(v1)::index_type>)
+  // mrns<mrns<u64, 2>, 2> k({grid, grid});
+
+  // // cout << "k.size(): " << k.size() << "\n";
+  // PRINTLN(k.size());
+
+  // cout << std::setfill('[') << std::setw(2) << ""
+  //           << std::setfill(' ');
+  // for(auto i = k = 0; i < k.overflow(true); i++) {
+  //   auto j = i-1;
+
+  //   for(std::size_t n = k.size() - 1; n < k.size(); n--) {
+  //     // std::cout << (j[n] < i[n] ? left_delimeters[n] : "");
+  //     if(j[n] < i[n]) {
+  //       if(n != 0) cout
+  //         << std::setfill(' ') << std::setw(k.size()-n) << ""
+  //         << std::setfill('[') << std::setw(n) << ""
+  //         << std::setfill(' ');
+  //       break;
+  //     }
+  //   }
+
+  //   cout << 1;
+  //   // cout << std::setw(width) << v1[i];
+
+  //   j = i+1;
+  //   for(std::size_t n = 0; n < k.size(); n++) {
+  //     // std::cout << (i[n] < j[n] ? right_delimeters[n] : "");
+
+  //     if(i[n] < j[n]) {
+  //       if(n == 0)
+  //         cout << ", ";
+  //       else cout
+  //         << std::setfill(']') << std::setw(n+2) << ",\n"
+  //         << std::setfill(' ');
+  //     }
+  //   }
+  // };
+
+  // cout << std::setfill(']') << std::setw(2) << ""
+  //           << std::setfill(' ');
+
+  // cout << "\n";
   FAIL();
 }
 
-#pragma endregion } DenseArrayTests
+#pragma endregion ] SparseArrayTests

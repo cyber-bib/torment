@@ -1,59 +1,154 @@
 #pragma once
 
-#include "array/std_array.hxx"
-
-#include <vector>
-#include <type_traits>
+#include "smart_container.hxx"
+#include <numeric>
 
 namespace torment {
 
   namespace dense {
 
-    template<std::size_t Sz>
-    constexpr bool is_dynamic = (Sz == 0);
+    template<class First, class... Rest>
+    constexpr auto urr(First first, Rest... rest) {
+      static_assert((std::is_same_v<First, Rest> && ...), "All elements must be the same type");
 
-    template<class T, std::size_t Sz>
-    using container_type = std::conditional_t<  is_dynamic<Sz>,
-                                                std::vector<T>,
-                                                std_array<T, Sz>  >;
+      return std::array<std::size_t, 1 + sizeof...(Rest)>{
+        static_cast<std::size_t>(first),
+        static_cast<std::size_t>(rest)...};
+    }
 
-    template<class T, std::size_t Sz> struct base;
+    template<std::size_t Rank>
+    constexpr bool is_multidimensional = (Rank != 1);
 
+    template<class Index, std::size_t Rank>
+    using shape_t    = std::conditional_t<  is_multidimensional<Rank>,
+                                            ::torment::dense::smart_container<Index, Rank>,
+                                            Index  >;
 
+    template<class Index, std::size_t Rank>
+    constexpr std::size_t zredmult(
+      std::array<Index, Rank> const &arg
+    ) {
+      return (arg.size() > 0 ? std::reduce (
+          arg.begin(),
+          arg.end(),
+          std::size_t(1),
+          std::multiplies{}) : 0);
+    }
 
-    // template <class T>
-    // struct is_base : std::false_type {};
+    template<
+      class Index,
+      std::size_t Rank,
+      std::array<Index, Rank> Shape = std::array<Index, Rank>{},
+      bool Dynamic = is_dynamic<zredmult(Shape)>>
+    struct shape {
+      typedef shape_t<Index, Rank> array_type;
 
-    // template <class T, std::size_t Sz>
-    // struct is_base<base<T, Sz>> : std::true_type {};
+      static_assert(
+        !is_dynamic<zredmult(Shape)>,
+        "template parameter \"Dynamic\" modified, "
+        "not intended to be manually overwritten.");
 
-    // template <class T>
-    // inline constexpr bool is_base_v = is_base<T>::value;
+      static constexpr array_type m_shape = Shape;
+    };
+    // shape<std::size_t, 0, false>::m_shape = std::vector{1,2,3};
+    template<
+      class Index,
+      std::array<Index, 1> Shape>
+    struct shape<Index, 1, Shape, false> {
+      typedef shape_t<Index, 1> array_type;
+
+      static_assert(
+        !is_dynamic<zredmult(Shape)>,
+        "template parameter \"Dynamic\" modified, "
+        "not intended to be manually overwritten.");
+
+      static constexpr array_type m_shape = Shape[0];
+    };
+    template<
+      class Index,
+      std::size_t Rank,
+      std::array<Index, Rank> Shape>
+    struct shape<Index, Rank, Shape, true> {
+      typedef shape_t<Index, Rank> array_type;
+
+      static_assert(
+        is_dynamic<zredmult(Shape)>,
+        "template parameter \"Dynamic\" modified, "
+        "not intended to be manually overwritten.");
+
+      array_type m_shape;
+
+      // template<typename = std::enable_if_t<is_multidimensional<Rank>>>
+      explicit shape(array_type const& _shape) : m_shape(_shape) {}
+
+      // template<class S = shape_type, typename = std::void_t<typename S::list_type>>
+      // shape(typename S::list_type const& _shape) : m_shape(_shape) {
+      //   static_assert(
+      //     typeid(S) == typeid(shape_type),
+      //     "template parameter S is not intened to be explicitly modified.");
+      // }
+
+      // shape(shape_type const& _shape) : m_shape(_shape) {}
+    };
+
+    template<
+      class T,
+      std::size_t Rk,
+      std::array<std::size_t, Rk> Sp,
+      std::size_t Sz> struct base;
 
     #ifdef _IOSTREAM_ // {
 
-    template<class T, std::size_t Sz>
-    std::ostream& operator<<(std::ostream &os, base<T, Sz> const &base);
+    template<
+      class T,
+      std::size_t Rk,
+      std::array<std::size_t, Rk> Sp,
+      std::size_t Sz>
+    std::ostream&
+    operator<<(
+      std::ostream &os,
+      base<T,Rk,Sp,Sz> const &arrg  );
 
     #endif // } _IOSTREAM_
 
-    template<class T, std::size_t Sz = 0>
-    struct base : container_type<T, Sz> {
-      typedef T value_type;
-      typedef std::initializer_list<T> list_type;
-      typedef container_type<value_type, Sz> container_t;
+    template<
+      class T,
+      std::size_t Rk = 0,
+      std::array<std::size_t, Rk> Sp
+        = std::array<std::size_t, Rk>{},
+      std::size_t Sz = zredmult(Sp) >
+    struct base
+    : shape<std::size_t, Rk, Sp, is_dynamic<Sz>>,
+      smart_container<T, (is_dynamic<Rk> ? 0 : Sz)>
+    {
+      static_assert(Sz == zredmult(Sp),
+        "Do not modify this value, "
+        "not intended to be modified. ");
 
-      using container_t::container_t;
-      // using container_t::operator=;
+      typedef shape<std::size_t, Rk, Sp, is_dynamic<Sz>> shape_type;
+      typedef shape_type::array_type shape_array_type;
 
+      typedef smart_container<T, (is_dynamic<Rk> ? 0 : Sz)> base_type;
+      typedef base_type::value_type value_type;
+
+      using base_type::base_type;
+      using base_type::operator=;
+
+      // template<typename
+      //   = std::enable_if_t<is_multidimensional<Rk> &&
+      //     is_dynamic<Sz>>>
+      base(shape_array_type const& shape, value_type const& val = 0);
+
+      shape_array_type shape() const;
+
+      // value_type& operator[]();
 
       #ifdef _IOSTREAM_ // {
 
-      friend std::ostream& operator<< <T, Sz>(std::ostream &os, base const &arr);
+      friend std::ostream& operator<< <T,Rk,Sp,Sz>(std::ostream &os, base const &arg);
 
       #endif // } _IOSTREAM_
     };
-
 
   };
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "array/std_array.hxx"
+#include "../std_array.hxx"
 
 #include <vector>
 #include <type_traits>

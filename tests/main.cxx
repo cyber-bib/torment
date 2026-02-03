@@ -1,55 +1,97 @@
 #include <array>
+#include <cstddef>
 #include <sstream>
+#include <boost/preprocessor.hpp>
 
 #pragma region include-headers [
 
 #include <boost/preprocessor.hpp>
 
-#include <memory>
-#include <numeric>
-#include <functional>
+// #include <memory>
+// #include <numeric>
+// #include <functional>
 #include <iostream>
 
 #include "radix/mix.txx"
-#include "array/dense/base.txx"
+#include "array/dense/array.txx"
 #include "array/sparse/array.txx"
+
+// #include "vector/dense/core.txx"
 
 #include "gtest/gtest.h"
 
 #pragma endregion ] include-headers
 
-#define PRINT(os_code) std::cout << #os_code ": " << os_code
+#pragma region debug-macros [
+
+#define INIT_CODEVARS                                                           \
+  char const  * const __file__ = __FILE__,                                      \
+              * const ___fn___ = __func__,                                      \
+              * const __line__ = "~" BOOST_PP_STRINGIZE(__LINE__),              \
+              * const __date__ = __DATE__,                                      \
+              * const __time__ = __TIME__
+
+#define CODEVARS __file__, ___fn___, __line__, __date__, __time__
+
+#define PRINT(os_code) #os_code ": " << os_code
 #define PRINTLN(os_code) PRINT(os_code) << "\n"
 
-#define PRETTY_PRINT_1(os_code) \
+#define PRINTLN_MACRO(r, n, i, elem)                                            \
+  PRINTLN(elem)                                                                 \
+  BOOST_PP_IF(BOOST_PP_EQUAL(i, BOOST_PP_DEC(n)), , <<)
+
+#define PRINT_SEQ(seq)                                                          \
+  BOOST_PP_SEQ_FOR_EACH_I( PRINTLN_MACRO, BOOST_PP_SEQ_SIZE(seq), seq  )
+
+#define PRINTVARS(...) PRINT_SEQ(BOOST_PP_TUPLE_TO_SEQ((__VA_ARGS__)))
+
+#define PRINT_CODEVARS(os)                                                      \
+  INIT_CODEVARS;                                                                \
+  os << PRINTVARS(CODEVARS)
+
+
+#define PRETTY_PRINT_1(os_code)                                                 \
   std::cout << #os_code ":\n" << os_code << "\n"
-#define PRETTY_PRINT_2(os_code, os_setw) \
+#define PRETTY_PRINT_2(os_code, os_setw)                                        \
   std::cout << #os_code ":\n" << std::setw(os_setw) << os_code << "\n"
 
 #if !BOOST_PP_VARIADICS_MSVC
-# define PRETTY_PRINT(...) BOOST_PP_OVERLOAD(PRETTY_PRINT_,__VA_ARGS__)(__VA_ARGS__)
+# define  PRETTY_PRINT(...)                                                     \
+            BOOST_PP_OVERLOAD(PRETTY_PRINT_,__VA_ARGS__)(__VA_ARGS__)
 #else
-# define MACRO_ADD_NUMBERS(...) \
-  BOOST_PP_CAT(BOOST_PP_OVERLOAD(PRETTY_PRINT_,__VA_ARGS__)(__VA_ARGS__),BOOST_PP_EMPTY())
+# define  MACRO_ADD_NUMBERS(...)                                                \
+            BOOST_PP_CAT( BOOST_PP_OVERLOAD(PRETTY_PRINT_,__VA_ARGS__)          \
+                          (__VA_ARGS__),                                        \
+                          BOOST_PP_EMPTY()  )
 #endif
 
+#pragma endregion ] debug-macros
 
 #pragma region forward-decls [
 
 // template<class T>
 // using dense = torment::dense::smart_container<T, 0>;
 
+template<class T, std::size_t N = 0>
+using vec = torment::dense::base<T, 1, torment::dense::urr(N)>;
+
 template<std::size_t N>
-using ivec = torment::dense::base<int, 1, torment::dense::urr(N)>;
+using ivec = vec<int, N>;
 
 template<std::size_t R, std::size_t C>
 using imat = torment::dense::base<int, 2, torment::dense::urr(R, C)>;
 
-template<std::size_t N>
-using ispec = torment::sparse::array<int, 1>;
+template<class K>
+using iXvec = torment::sparse::array<int, 1, K>;
+
+template<class K = std::size_t>
+using iXmat = torment::sparse::array<int, 2, K>;
 
 template<class T, std::size_t N = 0>
 using mrns = torment::radix::unsigned_mixed_system<T, N>;
+
+template<std::size_t N = 0>
+using size_mrns = torment::radix::unsigned_mixed_system<std::size_t, N>;
 
 void* operator new(std::size_t size);
 
@@ -96,8 +138,7 @@ void* operator new(std::size_t size) {
 #pragma endregion ] forward-decls
 #pragma region DenseArrayTests [
 
-
-TEST(DenseArrayTests, ShapeStructTest) {
+TEST(DenseArrayCoreTests, ShapeStructTest) {
   using namespace torment::dense;
 
   constexpr auto _ = std::array<std::size_t, 0>{};
@@ -134,7 +175,7 @@ TEST(DenseArrayTests, ShapeStructTest) {
   EXPECT_EQ(sizeof(s2), 1);
 
 }
-TEST(DenseArrayTests, ShapeTypeTest) {
+TEST(DenseArrayCoreTests, ShapeTypeTest) {
   using namespace torment::dense;
 
   // typedef array<int, 1, urr(3)> ivec3;
@@ -156,7 +197,7 @@ TEST(DenseArrayTests, ShapeTypeTest) {
   EXPECT_EQ(_imat33_stn, _2_elem_base_tn);
   EXPECT_EQ(_itensor_stn, _dynamic_base_tn);
 }
-TEST(DenseArrayTests, ShapeValueTest) {
+TEST(DenseArrayCoreTests, ShapeValueTest) {
   using namespace torment::dense;
   // auto &mem = memory_usage::instance();
   // mem.reset();
@@ -185,7 +226,7 @@ TEST(DenseArrayTests, ShapeValueTest) {
   EXPECT_EQ(_24, v_frds.shape());
   EXPECT_EQ(_44, v_heap.shape());
 }
-TEST(DenseArrayTests, StreamTest) {
+TEST(DenseArrayCoreTests, StreamTest) {
   using namespace torment::dense;
 
   std::stringstream ss;
@@ -229,8 +270,84 @@ TEST(DenseArrayTests, StreamTest) {
     "   [0, 1]]]]";
   EXPECT_EQ(ss.str(), str);
 }
+TEST(DenseArrayCoreTests, RangedForLoopTest) {
+  typedef std::uint64_t u64;
+  using namespace torment::dense;
+
+  std::stringstream ss;
+  std::string str;
+
+  base<int, 3, urr(5, 3, 2)> T;
+
+  for(u64 cnt = 0; auto &e : T) e = cnt++;
+
+  ss << std::setw(3) << T;
+  str = "[[[  0,   1,   2,   3,   4], \n"
+        "  [  5,   6,   7,   8,   9], \n"
+        "  [ 10,  11,  12,  13,  14]], \n"
+        " [[ 15,  16,  17,  18,  19], \n"
+        "  [ 20,  21,  22,  23,  24], \n"
+        "  [ 25,  26,  27,  28,  29]]]";
+
+  EXPECT_EQ(ss.str(), str);
+  // std::cout << "T:\n" << std::setw(3) << T << "\n";
+}
+TEST(DenseArrayCoreTests, SubscriptAccessTest) {
+  typedef std::uint64_t u64;
+  using namespace torment::dense;
+
+  constexpr auto shape = urr(5, 3, 2);
+  base<int, shape.size(), shape> T;
+  T.fill(0);
+
+  T[{1, 0 , 0}] = 10;
+  T[{0, 1 , 0}] = 20;
+  T[{0, 0 , 1}] = 30;
+
+  EXPECT_EQ(T[1], 10);
+  EXPECT_EQ(T[5], 20);
+  EXPECT_EQ(T[15], 30);
+
+  // std::cout << "T:\n" << std::setw(4) << T << "\n";
+}
+
+
+TEST(DenseArrayTests, RingOperators) {
+  using namespace torment::dense;
+
+  auto &cout = std::cout;
+  
+  // array<float, 3> a;
+  //
+  
+  array<float, 2, urr(3, 3)>
+    a = { 1, 0, 1,
+          0, 1, 0,
+          1, 0, 1  },
+    b = { 0, 1, 0,
+          1, 0, 1,
+          0, 1, 0  };
+    
+    a*=3;
+  
+  cout << PRINTVARS(a);
+}
 
 #pragma endregion ] DenseArrayTests
+#pragma region DenseVectorTests [
+
+// TEST(DenseVectorTests, RingOperators) {
+//   using namespace torment::dense;
+//
+//   array<double, 3>  v1 = {1, 2, 3},
+//                     v2 = {4, 5, 6};
+//
+//
+// }
+
+#pragma endregion ] DenseVectorTests
+
+
 
 TEST(MixedRadixSystemTests, Subtract) {
   using namespace std;
@@ -248,6 +365,83 @@ TEST(MixedRadixSystemTests, Subtract) {
 
   EXPECT_EQ(num, res);
 }
+TEST(MixedRadixSystemTests, RangedForLoop_1DTest) {
+  using namespace std;
+  using namespace torment::dense;
+
+  typedef std::uint64_t u64;
+
+  mrns<u64, 4> num({3, 4, 6, 8});
+
+  num = {2, 3, 5, 7};
+
+  std::size_t tot = 1, rst = 2*3*5*7;
+  for(auto e: num) {
+    tot *= e;
+  }
+
+  EXPECT_EQ(tot, rst);
+}
+TEST(MixedRadixSystemTests, RangedForLoop_2DTest) {
+  using namespace std;
+  using namespace torment::dense;
+
+  typedef std::uint64_t u64;
+
+  mrns<mrns<u64, 2>, 2> num({3, 4, 6, 8});
+
+  num = {2, 3, 5, 7};
+
+  std::size_t tot = 1, rst = 2*3*5*7;
+  for(auto e: num) {
+    tot *= e;
+  }
+
+  EXPECT_EQ(tot, rst);
+}
+TEST(MixedRadixSystemTests, RangedForLoop_3DTest) {
+  using namespace std;
+  using namespace torment::dense;
+
+  typedef std::uint64_t u64;
+
+  auto &cout = std::cout;
+
+  mrns<mrns<mrns<u64, 2>, 2>, 2> num({
+    3, 4, 3, 12,
+    8, 6, 4, 6  });
+
+  num = {
+    2, 3, 2, 11,
+    7, 5, 3, 5  };
+
+  std::size_t tot = 1, rst = 2*3*2*11*7*5*3*5;
+  for(auto e: num) {
+    tot *= e;
+  }
+
+  EXPECT_EQ(tot, rst);
+}
+TEST(MixedRadixSystemTests, DecayTest) {
+  using namespace std;
+  using namespace torment::dense;
+
+  typedef std::uint64_t u64;
+
+  mrns<mrns<u64,2>,2> num({3, 3, 3, 3});
+
+  auto res = num;
+
+  num = {0, 0, 0, 0};
+
+  stringstream ss;
+  ss << num.decay_cast();
+
+  string str = "[ [ 0, 0 ], [ 0, 0 ] ]";
+  EXPECT_EQ(ss.str(), str);
+  // ss << static_cast<decltype(num)::decay_type>(num);
+}
+
 TEST(MixedRadixSystemTests, SimpleTest) {
   using namespace std;
   using namespace torment::dense;
@@ -448,10 +642,69 @@ TEST(SparseArrayTests, RangedForLoopTest) {
 
   array<int, 4> v1({3, 3, 3, 3});
 
-  for(int cnt = 0; auto e : v1)
-    e = cnt++;
+  for(int cnt = 0; auto e : v1) {
+    e = cnt % 2 == 0 ? cnt : 0;
+    cnt++;
+  }
 
-  PRETTY_PRINT(v1, 2);
+  std::string str =   "[[[[ 0,  0,  2],\n"
+                      "   [ 0,  4,  0],\n"
+                      "   [ 6,  0,  8]],\n"
+                      "  [[ 0, 10,  0],\n"
+                      "   [12,  0, 14],\n"
+                      "   [ 0, 16,  0]],\n"
+                      "  [[18,  0, 20],\n"
+                      "   [ 0, 22,  0],\n"
+                      "   [24,  0, 26]]],\n"
+                      " [[[ 0, 28,  0],\n"
+                      "   [30,  0, 32],\n"
+                      "   [ 0, 34,  0]],\n"
+                      "  [[36,  0, 38],\n"
+                      "   [ 0, 40,  0],\n"
+                      "   [42,  0, 44]],\n"
+                      "  [[ 0, 46,  0],\n"
+                      "   [48,  0, 50],\n"
+                      "   [ 0, 52,  0]]],\n"
+                      " [[[54,  0, 56],\n"
+                      "   [ 0, 58,  0],\n"
+                      "   [60,  0, 62]],\n"
+                      "  [[ 0, 64,  0],\n"
+                      "   [66,  0, 68],\n"
+                      "   [ 0, 70,  0]],\n"
+                      "  [[72,  0, 74],\n"
+                      "   [ 0, 76,  0],\n"
+                      "   [78,  0, 80]]]]";
+  std::stringstream ss;
+  ss << std::setw(2) << v1;
+
+  EXPECT_EQ(ss.str(), str);
+}
+TEST(SparseArrayTests, MixedRadixNumberSystemTest) {
+  typedef std::uint64_t u64;
+  typedef mrns<u64, 2> index_type;
+
+  index_type R({4, 6});
+  index_type C({8, 3});
+
+  R = {3, 5};
+  C = {7, 2};
+
+
+  iXmat<index_type> mat({R, C});
+
+  auto shape = mat.shape();
+
+  std::cout << PRINTVARS(
+    R.size(),
+    C.size(),
+    mat.shape(),
+    mat.size()
+  );
+  // PRINTLN(R.size());
+  // PRINTLN(C.size());
+
+  // PRINTLN(mat.shape());
+  // PRINTLN(mat.size());
 }
 
 TEST(SparseArrayTests, Dummy) {
@@ -462,13 +715,13 @@ TEST(SparseArrayTests, Dummy) {
 
   auto &cout = std::cout;
 
-  mrns<u64, 2> grid({3, 3});
+  mrns<u64, 2> grid({2, 2});
 
   // cout << "grid: " << *grid.m_radices << "\n";
-  PRINTLN(*grid.m_radices);
+  // PRINTLN(*grid.m_radices);
 
   // array<int, 2, mrns<u64, 2>>::base_type::index_type idx({1, 2});
-  array<int, 2, dense::smart_container<u64, 2>> v1({*grid.m_radices, *grid.m_radices}, 0);
+  // array<int, 2, dense::smart_container<u64, 2>> v1({*grid.m_radices, *grid.m_radices}, 0);
 
 
 
@@ -495,15 +748,16 @@ TEST(SparseArrayTests, Dummy) {
   //       v
   //
 
-  // auto width = cout.width();
+  auto width = cout.width();
 
-  // // if(std::is_integral_v<decltype(v1)::index_type>)
-  // mrns<mrns<u64, 2>, 2> k({grid, grid});
+  // if(std::is_integral_v<decltype(v1)::index_type>)
+  mrns<mrns<u64, 2>, 2> k({grid, grid});
 
-  // // cout << "k.size(): " << k.size() << "\n";
+  // cout << "k.size(): " << k.size() << "\n";
   // PRINTLN(k.size());
 
-  // cout << std::setfill('[') << std::setw(2) << ""
+
+  // cout << std::setfill('[') << std::setw(4) << ""
   //           << std::setfill(' ');
   // for(auto i = k = 0; i < k.overflow(true); i++) {
   //   auto j = i-1;
@@ -536,7 +790,7 @@ TEST(SparseArrayTests, Dummy) {
   //   }
   // };
 
-  // cout << std::setfill(']') << std::setw(2) << ""
+  // cout << std::setfill(']') << std::setw(4) << ""
   //           << std::setfill(' ');
 
   // cout << "\n";

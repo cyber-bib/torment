@@ -132,7 +132,7 @@ namespace torment {
           _sz *= e;
         }
 
-        return static_cast<std::size_t>(_sz);
+        return _sz;
       }
     }
 

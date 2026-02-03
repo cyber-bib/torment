@@ -1,7 +1,7 @@
 #pragma once
 
 #include "smart_container.hxx"
-#include "array/std_array.txx"
+#include "../std_array.txx"
 
 namespace torment {
   namespace dense {

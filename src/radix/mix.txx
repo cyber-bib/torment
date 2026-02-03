@@ -1,7 +1,7 @@
 #pragma once
 
 #include "mix.hxx"
-#include "array/dense/base.txx"
+#include "array/dense/core.txx"
 
 #include <algorithm>
 #include <memory>
@@ -227,6 +227,8 @@ void unsigned_mixed_system<T,Sz>::init() {
   // unsigned_mixed_system<T,Sz>::unsigned_mixed_system()
   // : m_radices(nullptr) {}
 
+
+
   template<class T, std::size_t Sz, std::size_t Sy>
   unsigned_mixed_system<unsigned_mixed_system<T, Sy>, Sz>::
     unsigned_mixed_system(
@@ -247,6 +249,42 @@ void unsigned_mixed_system<T,Sz>::init() {
     this->init();
     // this->m_radices
   }
+
+  template<class T, std::size_t Sz, std::size_t Sy> std::size_t
+  unsigned_mixed_system<unsigned_mixed_system<T, Sy>, Sz>::
+    size() const {
+      // this might produce undefined behavior if Sz==0
+      return Sz;
+    }
+
+  template<class T, std::size_t Sz, std::size_t Sy>
+  typename unsigned_mixed_system<unsigned_mixed_system<T, Sy>, Sz>::decay_type
+  unsigned_mixed_system<unsigned_mixed_system<T, Sy>, Sz>::
+    decay_cast() const {
+      decay_type dst;
+      dst = static_cast<decay_type>(*this);
+      return dst;
+    }
+
+  template<class T, std::size_t Sz, std::size_t Sy>
+  unsigned_mixed_system<unsigned_mixed_system<T, Sy>, Sz>::
+    operator decay_type() const {
+      decay_type dst;
+
+      static_assert(  Sy*Sz != 0,
+                      "Sy == 0 || Sz == 0 "
+                      "conditions are not currently handled!");
+
+      std::size_t cnt = 0;
+      for(std::size_t k = 0; k < Sz; k++) {
+        for(std::size_t j = 0; j < Sy; j++) {
+          dst[k][j] = this->at(cnt++);
+        }
+      }
+
+      return dst;
+    }
+
 } // namespace radix
 
 } // namespace torment

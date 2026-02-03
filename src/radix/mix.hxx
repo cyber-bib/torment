@@ -3,7 +3,8 @@
 #include <initializer_list>
 #include <memory>
 #include <boost/operators.hpp>
-#include "array/dense/base.hxx"
+#include "array/dense/smart_container.hxx"
+#include "array/dense/core.hxx"
 
 // #include "iface.hxx"
 
@@ -70,7 +71,6 @@ namespace torment {
         void init();
     };
 
-    // mrns<mrns<u64, 2>, 2> k({grid, grid});
     template<class T, std::size_t Sz, std::size_t Sy>
     struct unsigned_mixed_system<unsigned_mixed_system<T, Sy>, Sz>
     : unsigned_mixed_system<T, Sy*Sz>
@@ -84,6 +84,10 @@ namespace torment {
       typedef base_type::base_type array_type;
       typedef base_type::value_type value_type;
       typedef base_type::list_type list_type;
+      typedef base_type::list_type list_type;
+
+      typedef dense::smart_container<T, Sy> decayval_type;
+      typedef dense::smart_container<decayval_type, Sz> decay_type;
 
       using base_type::base_type;
       unsigned_mixed_system(
@@ -94,6 +98,10 @@ namespace torment {
       // unsigned_mixed_system& operator=(list_type const &list);
       // typedef base_type::value_type value_type;
       // typedef base_type::list_type list_type;
+      std::size_t size() const;
+
+      decay_type decay_cast() const;
+      operator decay_type() const;
     };
   } // namespace radix
 

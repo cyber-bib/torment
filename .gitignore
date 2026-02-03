@@ -1,4 +1,4 @@
-.cache/
+.[Cc]ache
+.[Vv]scode
 [Bb]uild
-[Pp]ublic/**
-.vscode/settings.json
+[Pp]ublic

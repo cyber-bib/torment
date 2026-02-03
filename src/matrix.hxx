@@ -49,8 +49,6 @@ namespace tormentor {
   };
   matrix operator*(matrix::scalar const &lhs, matrix const &rhs);
 
-
-
   struct matrix_proxy {
     typedef matrix::key_type key_type;
     typedef matrix::scalar scalar;

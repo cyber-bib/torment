@@ -1,13 +1,7 @@
 
 
 add_executable(tor-mentor
-  main.cxx
-  # vector.hxx
-  # vector.cxx
-  # matrix.hxx
-  # matrix.cxx
-  tormentor.hxx
-  tormentor.cxx  )
+  main.cxx  )
 target_include_directories(tor-mentor
   PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}  )

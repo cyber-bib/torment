@@ -3,7 +3,7 @@
 #include "../std_array.hxx"
 
 #include <vector>
-#include <type_traits>
+// #include <type_traits>
 
 namespace torment {
 
@@ -45,6 +45,9 @@ namespace torment {
 
       using container_t::container_t;
       // using container_t::operator=;
+
+      smart_container(container_t const& c);
+      smart_container(container_t&& c);
 
 
       #ifdef _IOSTREAM_ // {

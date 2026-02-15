@@ -26,7 +26,7 @@ namespace torment {
 namespace dense {
 
   template<class T, std::size_t R = 0, std::size_t C = 0>
-  struct matrix : base<T, 2, urr(R, C)> {
+  struct matrix : base<T, 2, std::size_t, urr(R, C)> {
 
   };
 

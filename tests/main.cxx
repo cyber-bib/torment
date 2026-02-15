@@ -16,7 +16,7 @@
 #include "array/dense/array.txx"
 #include "array/sparse/array.txx"
 
-// #include "vector/dense/core.txx"
+#include "vector/dense/core.txx"
 
 #include "gtest/gtest.h"
 
@@ -72,14 +72,42 @@
 // template<class T>
 // using dense = torment::dense::smart_container<T, 0>;
 
+typedef std::uint8_t  u8;
+typedef std::uint16_t u16;
+typedef std::uint32_t u32;
+typedef std::uint64_t u64;
+
+typedef std::int8_t  i8;
+typedef std::int16_t i16;
+typedef std::int32_t i32;
+typedef std::int64_t i64;
+
+constexpr u8 operator "" _u8(unsigned long long val) {
+  return val;
+};
+constexpr u16 operator "" _u16(unsigned long long val) {
+  return val;
+};
+constexpr u32 operator "" _u32(unsigned long long val) {
+  return val;
+};
+constexpr u64 operator "" _u64(unsigned long long val) {
+  return val;
+};
+
+template< class T,
+          std::size_t N = 0,
+          std::array<std::uint64_t, N> Sp = std::array<std::uint64_t, N>{}>
+using base_u64 = torment::dense::base<T, N, std::uint64_t, Sp>;
+
 template<class T, std::size_t N = 0>
-using vec = torment::dense::base<T, 1, torment::dense::urr(N)>;
+using vec = base_u64<T, 1, torment::dense::urr(N)>;
 
 template<std::size_t N>
 using ivec = vec<int, N>;
 
-template<std::size_t R, std::size_t C>
-using imat = torment::dense::base<int, 2, torment::dense::urr(R, C)>;
+template<std::uint64_t R, std::uint64_t C>
+using imat = base_u64<int, 2, torment::dense::urr(R, C)>;
 
 template<class K>
 using iXvec = torment::sparse::array<int, 1, K>;
@@ -142,10 +170,10 @@ TEST(DenseArrayCoreTests, ShapeStructTest) {
   using namespace torment::dense;
 
   constexpr auto _ = std::array<std::size_t, 0>{};
-  constexpr auto _0 = urr(0);
-  constexpr auto _3 = urr(3);
-  constexpr auto _00 = urr(0, 0);
-  constexpr auto _33 = urr(3, 3);
+  constexpr auto _0 = urr(0ULL);
+  constexpr auto _3 = urr(3ULL);
+  constexpr auto _00 = urr(0ULL, 0ULL);
+  constexpr auto _33 = urr(3ULL, 3ULL);
   auto _123 = std::vector<std::size_t>{1, 2, 3};
 
   shape<std::size_t, 0>       d0({1, 2, 3});
@@ -185,11 +213,11 @@ TEST(DenseArrayCoreTests, ShapeTypeTest) {
   std::string _2_elem_base_tn = typeid(smart_container<std::size_t, 2>).name();
   std::string _dynamic_base_tn = typeid(smart_container<std::size_t, 0>).name();
 
-  std::string _ivec0_stn = typeid(ivec<0>::shape_array_type).name();
-  std::string _ivec3_stn = typeid(ivec<3>::shape_array_type).name();
-  std::string _imat00_stn = typeid(imat<0,0>::shape_array_type).name();
-  std::string _imat33_stn = typeid(imat<3,3>::shape_array_type).name();
-  std::string _itensor_stn = typeid(base<int>::shape_array_type).name();
+  std::string _ivec0_stn = typeid(ivec<0>::index_type).name();
+  std::string _ivec3_stn = typeid(ivec<3>::index_type).name();
+  std::string _imat00_stn = typeid(imat<0,0>::index_type).name();
+  std::string _imat33_stn = typeid(imat<3,3>::index_type).name();
+  std::string _itensor_stn = typeid(base<int>::index_type).name();
 
   EXPECT_EQ(_ivec0_stn, _size_tn);
   EXPECT_EQ(_ivec3_stn, _size_tn);
@@ -202,18 +230,19 @@ TEST(DenseArrayCoreTests, ShapeValueTest) {
   // auto &mem = memory_usage::instance();
   // mem.reset();
 
-  constexpr auto _33 = urr(3, 3);
+  constexpr auto _33 = urr(3ULL, 3ULL);
 
-  base<int, 2, _33> v_frfs = {
+  base_u64<int, 2, _33> v_frfs = {
     1, 0, 0,
     0, 1, 0,
     0, 0, 1  }; // static array
 
-  base<int, 2>::shape_array_type _24 = {2, 4};
-  base<int, 2> v_frds(_24, 1);
+  base_u64<int, 2>::index_type _24 = {2, 4};
+  base_u64<int, 2> v_frds(_24, 1);
 
-  base<int>::shape_array_type _44 = {4, 4};
-  base<int> v_heap(_44);
+  base_u64<int>::index_type _44 = {4, 4};
+  base_u64<int> v_heap(_44);
+
 
   // mem.print();
 
@@ -277,7 +306,7 @@ TEST(DenseArrayCoreTests, RangedForLoopTest) {
   std::stringstream ss;
   std::string str;
 
-  base<int, 3, urr(5, 3, 2)> T;
+  base_u64<int, 3, urr(5ULL, 3ULL, 2ULL)> T;
 
   for(u64 cnt = 0; auto &e : T) e = cnt++;
 
@@ -296,8 +325,8 @@ TEST(DenseArrayCoreTests, SubscriptAccessTest) {
   typedef std::uint64_t u64;
   using namespace torment::dense;
 
-  constexpr auto shape = urr(5, 3, 2);
-  base<int, shape.size(), shape> T;
+  constexpr auto shape = urr(5ULL, 3ULL, 2ULL);
+  base_u64<int, shape.size(), shape> T;
   T.fill(0);
 
   T[{1, 0 , 0}] = 10;
@@ -312,42 +341,91 @@ TEST(DenseArrayCoreTests, SubscriptAccessTest) {
 }
 
 
-TEST(DenseArrayTests, RingOperators) {
+TEST(DenseArrayCoreTests, LowRankInitialization) {
   using namespace torment::dense;
 
-  auto &cout = std::cout;
-  
-  // array<float, 3> a;
-  //
-  
-  array<float, 2, urr(3, 3)>
-    a = { 1, 0, 1,
-          0, 1, 0,
-          1, 0, 1  },
-    b = { 0, 1, 0,
-          1, 0, 1,
-          0, 1, 0  };
-    
-    a*=3;
-  
-  cout << PRINTVARS(a);
+  base<int, 1, u16> v(4, 1);
+  base<int, 2, u16> m;
+
+  std::cout << "v.shape():  " << v.shape() << "\n";
+  std::cout << "v: " << v << "\n";
+
+  std::cout << "m.shape():  " << m.shape() << "\n";
+  std::cout << "m: " << m << "\n";
+
+  v.assign(3, 2);
+
+  // std_array<int, 4> t;
+  // t = {1, 2, 3, 4};
+  // m.assign({2, 3, 4}, 2);
+
+  std::cout << "v.shape():  " << v.shape() << "\n";
+  std::cout << "v: " << v << "\n";
+
+  std::cout << "m.shape():  " << m.shape() << "\n";
+  std::cout << "m: " << m << "\n";
+
+
+}
+TEST(DenseArrayProxyTests, SimpleTest) {
+  using namespace torment::dense;
+
+  // base<int, 2, u8, urr(4_u8, 4_u8)> a = {  1,  2,  3,  4,
+  //                                          5,  6,  7,  8,
+  //                                          9, 10, 11, 12,
+  //                                         13, 14, 15, 16  };
+
+  // base<int, 2, u8, urr(4_u8, 4_u8)> a;
+  // proxy<int, 2, u8, urr(4_u8, 4_u8)> p(a);
+
+  // std::cout << std::setw(2) << p << "\n";
 }
 
+// TEST(DenseArrayTests, MultiSubscriptAcessTest) {
+// }
+
+// TEST(DenseArrayTests, RingOperators) {
+//   using namespace torment::dense;
+
+//   auto &cout = std::cout;
+
+//   // array<float, 3> a;
+//   //
+
+//   array<float, 2, urr(3, 3)>
+//     a = { 1, 0, 1,
+//           0, 1, 0,
+//           1, 0, 1  },
+//     b = { 3, 0, 3,
+//           0, 3, 0,
+//           3, 0, 3  };
+//     // b = { 0, 3, 0,
+//     //       3, 0, 3,
+//     //       0, 3, 0  };
+
+//     a*=3;
+
+//   EXPECT_EQ(a, b);
+//   // cout << PRINTVARS(a);
+// }
+
+TEST(DenseArrayTests, RingOperators) {
+}
 #pragma endregion ] DenseArrayTests
 #pragma region DenseVectorTests [
 
 // TEST(DenseVectorTests, RingOperators) {
 //   using namespace torment::dense;
 //
-//   array<double, 3>  v1 = {1, 2, 3},
+//   vector<double, 3> v1 = {1, 2, 3},
 //                     v2 = {4, 5, 6};
 //
 //
 // }
 
+
 #pragma endregion ] DenseVectorTests
-
-
+#pragma region MixedRadixSystemTests [
 
 TEST(MixedRadixSystemTests, Subtract) {
   using namespace std;
@@ -441,7 +519,6 @@ TEST(MixedRadixSystemTests, DecayTest) {
   EXPECT_EQ(ss.str(), str);
   // ss << static_cast<decltype(num)::decay_type>(num);
 }
-
 TEST(MixedRadixSystemTests, SimpleTest) {
   using namespace std;
   using namespace torment::dense;
@@ -490,6 +567,8 @@ TEST(MixedRadixSystemTests, SimpleTest) {
   // base<float> v(3, 0);
   // std::cout << v << "\n";
 }
+
+#pragma endregion ] MixedRadixSystemTests
 
 #pragma region SparseArrayTests [
 
@@ -706,7 +785,6 @@ TEST(SparseArrayTests, MixedRadixNumberSystemTest) {
   // PRINTLN(mat.shape());
   // PRINTLN(mat.size());
 }
-
 TEST(SparseArrayTests, Dummy) {
   typedef std::uint64_t u64;
 

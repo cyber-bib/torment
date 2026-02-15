@@ -6,6 +6,12 @@
 namespace torment {
   namespace dense {
 
+    template<class T, std::size_t Sz>
+    smart_container<T,Sz>::smart_container(container_t const& c) : container_t(c) {}
+
+    template<class T, std::size_t Sz>
+    smart_container<T,Sz>::smart_container(container_t&& c) : container_t(std::move(c)) {}
+
     #ifdef _IOSTREAM_ // {
 
     template<class T, std::size_t Sz>

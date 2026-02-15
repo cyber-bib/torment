@@ -28,7 +28,7 @@
     // },
     {
       "name": "(LLDB) Testing",
-      "type": "lldb",
+      "type": "lldb-dap",
       "request": "launch",
       "program": "${workspaceFolder}/build/tests/RelWithDebInfo/tests.exe",
       "args": [],

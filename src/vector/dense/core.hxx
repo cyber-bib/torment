@@ -5,15 +5,15 @@ namespace torment {
 
 namespace dense {
 
-  template<class T, std::size_t S = 0>
-  struct vector 
-  : base<T, 1, urr(S)>,
-    boost::ring_operators<base<T, 1, urr(S)>>
+  template<class T, ::std::size_t S = 0>
+  struct vector
+  : base<T, 1, std::size_t, urr(S)>,
+    boost::ring_operators<base<T, 1, ::std::size_t, urr(S)>>
   {
-    typedef base<T, 1, urr(S)> base_type;
+    typedef base<T, 1, ::std::size_t, urr(S)> base_type;
 
     using base_type::base_type;
-    
+
   };
 
   // template<class T, std::size_t R = 0, std::size_t C = 0>

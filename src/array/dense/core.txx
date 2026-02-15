@@ -1,12 +1,27 @@
 #pragma once
 
-#include <iostream>
 #include "core.hxx"
 #include "smart_container.txx"
 
+#ifndef IMPL_TMPLT_PARAM_HEADER
+# define  IMPL_TMPLT_PARAM_HEADER                                               \
+            template< class T,                                                  \
+                      ::std::size_t Rk,                                         \
+                      class Idx,                                                \
+                      std::array<Idx,Rk> Sp,                                    \
+                      ::std::size_t Sz            >                             \
+
+#else
+# error IMPL_TMPLT_PARAM_HEADER is already defined
+#endif
+
+#ifndef IMPL_TMPLT_CLASS
+# define  IMPL_TMPLT_CLASS base<T,Rk,Idx,Sp,Sz>
+#else
+# error IMPL_TMPLT_CLASS_NAMESPACE is already defined
+#endif
 
 namespace torment {
-
 namespace dense {
 
 // template< class T,
@@ -16,32 +31,45 @@ namespace dense {
 // array<T,Rk,S,Sz>::array()
 // : shape_type(shape_t<std::size_t, Rk>()) {}
 
-template< class T,
-          std::size_t Rk,
-          std::array<std::size_t,Rk> S,
-          std::size_t Sz  >
-// template<typename>
-base<T,Rk,S,Sz>::base(
-  shape_array_type const& _shape,
+IMPL_TMPLT_PARAM_HEADER
+IMPL_TMPLT_CLASS::base (
+  index_type const& _shape,
   value_type const& val
 ) : shape_type(_shape),
-    base_type(
-      std::reduce(
-        _shape.begin(),
-        _shape.end(),
-        std::size_t(1),
-        std::multiplies{}), val)
+    base_type([&]{
+      if constexpr(is_multidimensional<Rk>)
+        return zredmult(_shape);
+      else
+        return static_cast<std::size_t>(_shape);
+    }(), val)
 {
   // this->m_shape = _shape;
 }
 
-template< class T,
-          std::size_t Rk,
-          std::array<std::size_t,Rk> S,
-          std::size_t Sz  >
-typename base<T,Rk,S,Sz>::shape_array_type
-base<T,Rk,S,Sz>::shape() const {
-  shape_array_type dst;
+IMPL_TMPLT_PARAM_HEADER
+IMPL_TMPLT_CLASS&
+IMPL_TMPLT_CLASS::assign (
+  index_type const& _shape,
+  value_type const& val
+) {
+  this->m_shape = _shape;
+
+  std::size_t n;
+
+  if constexpr(is_multidimensional<Rk>)
+    n = zredmult(_shape);
+  else
+    n = static_cast<std::size_t>(_shape);
+
+  this->base_type::assign(n, val);
+
+  return *this;
+}
+
+IMPL_TMPLT_PARAM_HEADER
+typename IMPL_TMPLT_CLASS::index_type
+IMPL_TMPLT_CLASS::shape() const {
+  index_type dst;
 
   // if constexpr(is_dynamic<Sz>)
     dst = this->m_shape;
@@ -51,15 +79,12 @@ base<T,Rk,S,Sz>::shape() const {
   return dst;
 }
 
-template< class                        T,
-          std::size_t                 Rk,
-          std::array<std::size_t,Rk>   S,
-          std::size_t                 Sz  >
-template< std::size_t                _Rk,
-          typename                        >
-typename base<T,Rk,S,Sz>::value_type &
-base<T,Rk,S,Sz>::operator[](
-  shape_array_type const& addr
+IMPL_TMPLT_PARAM_HEADER
+template< ::std::size_t _Rk,
+          typename         >
+typename IMPL_TMPLT_CLASS::value_type &
+IMPL_TMPLT_CLASS::operator[](
+  index_type const& addr
 ) {
   static_assert(Rk == _Rk,
                 "_Rk is not meant to be changed manually.");
@@ -71,15 +96,12 @@ base<T,Rk,S,Sz>::operator[](
   return dst;
 }
 
-template< class                        T,
-          std::size_t                 Rk,
-          std::array<std::size_t,Rk>   S,
-          std::size_t                 Sz  >
-template< std::size_t                _Rk,
-          typename                        >
-typename base<T,Rk,S,Sz>::value_type const &
-base<T,Rk,S,Sz>::operator[](
-  shape_array_type const& addr
+IMPL_TMPLT_PARAM_HEADER
+template< ::std::size_t _Rk,
+          typename         >
+typename IMPL_TMPLT_CLASS::value_type const &
+IMPL_TMPLT_CLASS::operator[](
+  index_type const& addr
 ) const {
   static_assert(Rk == _Rk,
                 "_Rk is not meant to be changed manually.");
@@ -91,18 +113,15 @@ base<T,Rk,S,Sz>::operator[](
   return dst;
 }
 
-template< class                         T,
-          std::size_t                  Rk,
-          std::array<std::size_t,Rk>    S,
-          std::size_t                  Sz  >
-template< std::size_t                 _Rk,
-          typename                         >
-typename base<T,Rk,S,Sz>::shape_array_type
-base<T,Rk,S,Sz>::strides() const {
+IMPL_TMPLT_PARAM_HEADER
+template< ::std::size_t _Rk,
+          typename         >
+typename IMPL_TMPLT_CLASS::index_type
+IMPL_TMPLT_CLASS::strides() const {
   static_assert(Rk == _Rk,
                 "_Rk is not meant to be changed manually.");
 
-  shape_array_type dst;
+  index_type dst;
 
   if constexpr(is_dynamic<Sz>) {
     dst.resize(this->m_shape.size());
@@ -119,15 +138,12 @@ base<T,Rk,S,Sz>::strides() const {
   return dst;
 }
 
-template< class                         T,
-          std::size_t                  Rk,
-          std::array<std::size_t,Rk>    S,
-          std::size_t                  Sz  >
-template< std::size_t _Rk,
-          typename                         >
+IMPL_TMPLT_PARAM_HEADER
+template< ::std::size_t _Rk,
+          typename         >
 std::size_t
-base<T,Rk,S,Sz>::id_from(
-  shape_array_type const& addr
+IMPL_TMPLT_CLASS::id_from(
+  index_type const& addr
 ) const {
   static_assert(Rk == _Rk,
                 "_Rk is not meant to be changed manually.");
@@ -144,50 +160,42 @@ base<T,Rk,S,Sz>::id_from(
   return id;
 }
 
-template< class                         T,
-          std::size_t                  Rk,
-          std::array<std::size_t,Rk>    S,
-          std::size_t                  Sz  >
-template< std::size_t _Rk,
-          typename                         >
-typename base<T,Rk,S,Sz>::shape_array_type
-base<T,Rk,S,Sz>::addr_from(
+IMPL_TMPLT_PARAM_HEADER
+template< ::std::size_t _Rk,
+          typename         >
+typename IMPL_TMPLT_CLASS::index_type
+IMPL_TMPLT_CLASS::addr_from(
   std::size_t const& id
 ) const {
   static_assert(Rk == _Rk,
                 "_Rk is not meant to be changed manually.");
-  
-  shape_array_type addr;
+
+  index_type addr;
 
   if constexpr(is_dynamic<Sz>) {
     addr.resize(this->m_shape.size());
   }
-  
+
   return addr;
 }
 
 
 #ifdef _IOSTREAM_ // {
 
-template<
-  class T,
-  std::size_t Rk,
-  std::array<std::size_t, Rk> Sp,
-  std::size_t Sz>
-std::ostream&
-operator<<(
+IMPL_TMPLT_PARAM_HEADER
+std::ostream& operator<<(
   std::ostream &os,
-  base<T,Rk,Sp,Sz> const &arg  )
+  IMPL_TMPLT_CLASS const &arg  )
 {
 
   if constexpr(Rk != 1) {
 
-    typedef base<T,Rk,Sp,Sz> arg_type;
-    typedef typename arg_type::shape_array_type indices_type;
+    typedef IMPL_TMPLT_CLASS arg_type;
+    typedef typename arg_type::index_type index_type;
 
     typedef void (*unwrap_type)(
       arg_type const &,
-      indices_type &,
+      index_type &,
       std::size_t,
       std::ostream &,
       std::size_t const &,
@@ -199,7 +207,7 @@ operator<<(
 
     unwrap = [](
       arg_type const &arg,
-      indices_type &indices,
+      index_type &indices,
       std::size_t index,
       std::ostream &os,
       std::size_t const &width,
@@ -253,7 +261,7 @@ operator<<(
       }
     };
 
-    indices_type indices;
+    index_type indices;
     if constexpr(Rk == 0)
       indices.assign(arg.shape().size(), 0);
     else
@@ -286,3 +294,6 @@ operator<<(
 }; // namespace dense
 
 }; // namespace torment
+
+#undef IMPL_TMPLT_PARAM_HEADER
+#undef IMPL_TMPLT_CLASS

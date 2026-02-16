@@ -35,7 +35,7 @@
         "--gtest_filter=*"
       ],
       "cwd": "${workspaceFolder}",
-      // "preLaunchTask": "build",
+      "preLaunchTask": "build",
       "console": "integratedTerminal"
     },
     {

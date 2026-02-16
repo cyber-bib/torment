@@ -385,13 +385,14 @@ TEST(DenseArrayCoreTests, LowRankInitialization) {
   // std::cout << "m.shape():  " << m.shape() << "\n";
   // std::cout << "m: " << m << "\n";
 }
-TEST(DenseArrayProxyTests, OneToOneTest) {
+TEST(DenseArrayProxyTests, StaticOneToOneTest) {
   using namespace torment::dense;
 
-  base<int, 2, u16, urr(4_u16, 4_u16)> a;
+  constexpr auto _4x4_ = urr(4_u16, 4_u16);
+  base<int, 2, u16, _4x4_> a;
   for(int i = 0; auto &e: a) e = i++;
 
-  proxy<int, 2, u16, urr(4_u16, 4_u16)> p(a);
+  proxy<int, 2, u16, _4x4_, 2, _4x4_> p(a);
   for(u8 i = 0; i < 4; i++) {
     for(u8 j = 0; j < 4; j++) {
       p({i, j}) = {i, j};
@@ -405,9 +406,7 @@ TEST(DenseArrayProxyTests, OneToOneTest) {
 
   EXPECT_EQ(as.str(), ps.str());
 
-  // std::cout << std::setw(2) << a << "\n";
   for(int i = 0; auto &e: a) e = 1 + i++;
-  std::cout << std::setw(2) << a << "\n";
 
   as.str("");
   ps.str("");
@@ -416,6 +415,50 @@ TEST(DenseArrayProxyTests, OneToOneTest) {
   ps << std::setw(2) << p;
 
   EXPECT_EQ(as.str(), ps.str());
+
+  // std::cout << std::setw(2) << a << "\n";
+  // std::cout << std::setw(2) << a << "\n";
+}
+
+TEST(DenseArrayProxyTests, ProjectionsTest) {
+  using namespace torment::dense;
+
+  constexpr auto _3x3_ = urr(3_u16, 3_u16);
+  constexpr auto _3v3_ = urr(3_u16, 3_u16, 3_u16);
+
+  typedef base<   int,
+                  _3v3_.size(),
+                  decltype(_3v3_)::value_type,
+                  _3v3_                        >                        itsr163;
+  typedef proxy<  int,
+                  _3v3_.size(),
+                  decltype(_3v3_)::value_type,
+                  _3v3_,
+                  _3x3_.size(),
+                  _3x3_                        >                      ipxy163_2;
+
+  itsr163 a;
+  for(int i = 0; auto &e: a) e = i++;
+
+  ipxy163_2 p(a);
+  for(u16 i = 0; i < 3; i++) {
+    for(u16 j = 0; j < 3; j++) {
+      p({i, j}) = {i, j, 1};
+    }
+  }
+
+  p.begin();
+
+  for(int i = 0; auto &e: p) e = 0;
+
+  // proxy<int, 3, u16, _3v3_, 2, _3x3_> p(a);
+
+
+  // proxy<int, 2, u16, urr(4_u16, 4_u16), > p(a);
+
+  std::cout << std::setw(2) << a << "\n\n";
+  std::cout << std::setw(2) << p << "\n";
+
 }
 
 // TEST(DenseArrayTests, MultiSubscriptAcessTest) {

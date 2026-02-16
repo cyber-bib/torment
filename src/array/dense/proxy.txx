@@ -31,7 +31,8 @@ namespace dense {
 
   IMPL_TMPLT_PARAM_HEADER
   IMPL_TMPLT_CLASS::proxy(typename IMPL_TMPLT_CLASS::_xed_type& data)
-    : base_type(data.shape(), typename base_type::value_type{}),
+    // : base_type(data.shape(), typename base_type::value_type{}),
+    : base_type(),
       m_data(data) {}
 
   IMPL_TMPLT_PARAM_HEADER

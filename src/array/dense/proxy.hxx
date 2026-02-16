@@ -76,7 +76,9 @@ namespace torment {
 
 
       proxy_val_t& operator()(proxy_idx_t const& addr);
+      proxy_val_t const& operator()(proxy_idx_t const& addr) const;
       value_type& operator[](proxy_idx_t const& addr);
+      value_type const& operator[](proxy_idx_t const& addr) const;
 
       // template<
       //   std::size_t _Rk = Rk,

@@ -385,13 +385,8 @@ TEST(DenseArrayCoreTests, LowRankInitialization) {
   // std::cout << "m.shape():  " << m.shape() << "\n";
   // std::cout << "m: " << m << "\n";
 }
-TEST(DenseArrayProxyTests, SimpleTest) {
+TEST(DenseArrayProxyTests, OneToOneTest) {
   using namespace torment::dense;
-
-  // base<int, 2, u8, urr(4_u8, 4_u8)> a = {  1,  2,  3,  4,
-  //                                          5,  6,  7,  8,
-  //                                          9, 10, 11, 12,
-  //                                         13, 14, 15, 16  };
 
   base<int, 2, u16, urr(4_u16, 4_u16)> a;
   for(int i = 0; auto &e: a) e = i++;
@@ -403,11 +398,24 @@ TEST(DenseArrayProxyTests, SimpleTest) {
     }
   }
 
+  std::stringstream as;
+  std::stringstream ps;
+  as << std::setw(2) << a;
+  ps << std::setw(2) << p;
 
+  EXPECT_EQ(as.str(), ps.str());
 
-
+  // std::cout << std::setw(2) << a << "\n";
+  for(int i = 0; auto &e: a) e = 1 + i++;
   std::cout << std::setw(2) << a << "\n";
-  std::cout << std::setw(2) << p << "\n";
+
+  as.str("");
+  ps.str("");
+
+  as << std::setw(2) << a;
+  ps << std::setw(2) << p;
+
+  EXPECT_EQ(as.str(), ps.str());
 }
 
 // TEST(DenseArrayTests, MultiSubscriptAcessTest) {

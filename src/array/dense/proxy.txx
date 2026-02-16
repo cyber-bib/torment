@@ -41,8 +41,20 @@ namespace dense {
   }
 
   IMPL_TMPLT_PARAM_HEADER
+  typename IMPL_TMPLT_CLASS::proxy_val_t const&
+  IMPL_TMPLT_CLASS::operator()(proxy_idx_t const& addr) const {
+    return this->base_type::operator[](addr);
+  }
+
+  IMPL_TMPLT_PARAM_HEADER
   typename IMPL_TMPLT_CLASS::value_type&
   IMPL_TMPLT_CLASS::operator[](proxy_idx_t const& addr) {
+    return this->m_data[this->operator()(addr)];
+  }
+
+  IMPL_TMPLT_PARAM_HEADER
+  typename IMPL_TMPLT_CLASS::value_type const&
+  IMPL_TMPLT_CLASS::operator[](proxy_idx_t const& addr) const {
     return this->m_data[this->operator()(addr)];
   }
 

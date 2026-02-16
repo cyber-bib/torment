@@ -224,7 +224,7 @@ IMPL_TMPLT_CLASS::addr_from(
 
   index_type addr;
 
-  if constexpr(is_dynamic<Sz>) {
+  if constexpr(is_dynamic<Rk>) {
     addr.resize(this->m_shape.size());
   }
 

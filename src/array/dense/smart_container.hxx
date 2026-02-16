@@ -49,6 +49,16 @@ namespace torment {
       smart_container(container_t const& c);
       smart_container(container_t&& c);
 
+      // template<std::size_t S = Sz, typename = std::enable_if_t<S == 0>>
+      // smart_container(
+      //   std::initializer_list<T>,
+      //   typename container_t::allocator_type const& =
+      //     typename container_t::allocator_type()
+      // ) = delete;
+
+      // template<std::size_t S = Sz, typename = std::enable_if_t<S == 0>>
+      // smart_container& operator=(std::initializer_list<T>) = delete;
+
 
       #ifdef _IOSTREAM_ // {
 

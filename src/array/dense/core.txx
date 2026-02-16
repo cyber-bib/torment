@@ -32,6 +32,7 @@ namespace dense {
 // : shape_type(shape_t<std::size_t, Rk>()) {}
 
 IMPL_TMPLT_PARAM_HEADER
+template<std::size_t _Sz, typename>
 IMPL_TMPLT_CLASS::base (
   index_type const& _shape,
   value_type const& val
@@ -44,6 +45,46 @@ IMPL_TMPLT_CLASS::base (
     }(), val)
 {
   // this->m_shape = _shape;
+}
+IMPL_TMPLT_PARAM_HEADER
+IMPL_TMPLT_CLASS::base (
+  list_type list)
+: base_type(list) {
+  if constexpr(Rk == 0) {
+    static_assert( Rk != 0,
+                    "initializer list constructor for fully dynamic "
+                    "multidimentional array-like objects is ill-formed.");
+  } else if constexpr(Rk == 1) {
+    if constexpr(Sz == 0) {
+      this->m_shape = list.size();
+    }
+  } else if constexpr(Rk > 1) {
+    static_assert( Sz != 0,
+                    "initializer list constructor for partially dynamic "
+                    "multidimentional array-like objects is ill-formed.");
+  }
+};
+IMPL_TMPLT_PARAM_HEADER
+IMPL_TMPLT_CLASS&
+IMPL_TMPLT_CLASS::operator= (
+  list_type list
+) {
+  if constexpr(Sz == 0) {
+    if constexpr(Rk == 1)
+      this->m_shape = list.size();
+    else {
+      if(list.size() != this->size())
+        throw std::logic_error( "initializer list size does not match dynamic "
+                                "shape size." );
+    }
+  } else {
+    if(list.size() != Sz)
+      throw std::logic_error( "initializer list size does not match static "
+                              "shape size." );
+  }
+  this->base_type::operator=(list);
+
+  return *this;
 }
 
 IMPL_TMPLT_PARAM_HEADER
@@ -64,6 +105,17 @@ IMPL_TMPLT_CLASS::assign (
   this->base_type::assign(n, val);
 
   return *this;
+}
+IMPL_TMPLT_PARAM_HEADER
+void IMPL_TMPLT_CLASS::resize (
+  index_type const& _shape,
+  value_type const& val
+) {
+  static_assert( Rk == 1,
+                  "resize of multidimensional array-like objects is "
+                  "ill-formed" );
+
+  this->base_type::resize(static_cast<std::size_t>(_shape), val);
 }
 
 IMPL_TMPLT_PARAM_HEADER
@@ -123,7 +175,7 @@ IMPL_TMPLT_CLASS::strides() const {
 
   index_type dst;
 
-  if constexpr(is_dynamic<Sz>) {
+  if constexpr(is_dynamic<Rk>) {
     dst.resize(this->m_shape.size());
   }
 
@@ -180,7 +232,7 @@ IMPL_TMPLT_CLASS::addr_from(
 }
 
 
-#ifdef _IOSTREAM_ // {
+#ifdef _IOSTREAM_ // [
 
 IMPL_TMPLT_PARAM_HEADER
 std::ostream& operator<<(
@@ -289,7 +341,7 @@ std::ostream& operator<<(
   return os;
 }
 
-#endif // } _IOSTREAM_
+#endif // ] _IOSTREAM_
 
 }; // namespace dense
 

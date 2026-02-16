@@ -103,7 +103,7 @@ using base_u64 = torment::dense::base<T, N, std::uint64_t, Sp>;
 template<class T, std::size_t N = 0>
 using vec = base_u64<T, 1, torment::dense::urr(N)>;
 
-template<std::size_t N>
+template<std::size_t N = 0>
 using ivec = vec<int, N>;
 
 template<std::uint64_t R, std::uint64_t C>
@@ -339,33 +339,51 @@ TEST(DenseArrayCoreTests, SubscriptAccessTest) {
 
   // std::cout << "T:\n" << std::setw(4) << T << "\n";
 }
-
-
 TEST(DenseArrayCoreTests, LowRankInitialization) {
   using namespace torment::dense;
 
+  typedef base<int, 1, u16> u16vec;
+
+
   base<int, 1, u16> v(4, 1);
-  base<int, 2, u16> m;
+  u16vec t = {1, 1, 1, 1};
 
-  std::cout << "v.shape():  " << v.shape() << "\n";
-  std::cout << "v: " << v << "\n";
-
-  std::cout << "m.shape():  " << m.shape() << "\n";
-  std::cout << "m: " << m << "\n";
+  EXPECT_EQ(t.shape(), 4);
+  EXPECT_EQ(v, t);
 
   v.assign(3, 2);
+  t = {2, 2, 2};
 
-  // std_array<int, 4> t;
-  // t = {1, 2, 3, 4};
-  // m.assign({2, 3, 4}, 2);
+  EXPECT_EQ(t.shape(), 3);
+  EXPECT_EQ(v, t);
 
-  std::cout << "v.shape():  " << v.shape() << "\n";
-  std::cout << "v: " << v << "\n";
+  base<int, 2, u16> m({2, 2}, 1);
+  base<int, 2, u16> w({2, 2}, 0);
 
-  std::cout << "m.shape():  " << m.shape() << "\n";
-  std::cout << "m: " << m << "\n";
+  w = { 1, 1,
+        1 ,1 };
 
 
+  EXPECT_EQ(w.shape(), urr(2_u16, 2_u16));
+  EXPECT_EQ(m, w);
+
+  // base<int, 2, u16, urr(2_u16, 2_u16)> w = {1, 1, 1, 1};
+  // std::cout << "w:\t" << w << "\n";
+
+  // w = { 1, 1,
+  //       1, 1  };
+  // m.assign({3, 3}, 2);
+  // w = { 2, 2, 2,
+  //       2, 2, 2,
+  //       2, 2, 2 };
+
+  // EXPECT_EQ(w33.shape(), _3x3_);
+  // EXPECT_EQ(m, w33);
+
+  // std::cout << "v.shape():  " << v.shape() << "\n";
+  // std::cout << "v: " << v << "\n";
+  // std::cout << "m.shape():  " << m.shape() << "\n";
+  // std::cout << "m: " << m << "\n";
 }
 TEST(DenseArrayProxyTests, SimpleTest) {
   using namespace torment::dense;
@@ -375,10 +393,21 @@ TEST(DenseArrayProxyTests, SimpleTest) {
   //                                          9, 10, 11, 12,
   //                                         13, 14, 15, 16  };
 
-  // base<int, 2, u8, urr(4_u8, 4_u8)> a;
-  // proxy<int, 2, u8, urr(4_u8, 4_u8)> p(a);
+  base<int, 2, u16, urr(4_u16, 4_u16)> a;
+  for(int i = 0; auto &e: a) e = i++;
 
-  // std::cout << std::setw(2) << p << "\n";
+  proxy<int, 2, u16, urr(4_u16, 4_u16)> p(a);
+  for(u8 i = 0; i < 4; i++) {
+    for(u8 j = 0; j < 4; j++) {
+      p({i, j}) = {i, j};
+    }
+  }
+
+
+
+
+  std::cout << std::setw(2) << a << "\n";
+  std::cout << std::setw(2) << p << "\n";
 }
 
 // TEST(DenseArrayTests, MultiSubscriptAcessTest) {

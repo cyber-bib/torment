@@ -41,8 +41,9 @@
       "description": "work in progress",
       "configurePreset": "default",
       "configuration": "RelWithDebInfo",
-      "output": {
-        "outputOnFailure": true
+      "execution": {
+        "stopOnFailure": true,
+        "interactiveDebugging": true
       }
     }
   ],

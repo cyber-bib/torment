@@ -169,18 +169,32 @@ namespace torment {
       // typedef base<index_type, 1> indices_type;
 
       typedef smart_container<T, (is_dynamic<Rk> ? 0 : Sz)> base_type;
+
+      typedef typename base_type::list_type list_type;
       typedef typename base_type::value_type value_type;
 
       using base_type::base_type;
       using base_type::operator[];
-      using base_type::operator=;
+      // using base_type::operator=;
 
-      // template<typename
-      //   = std::enable_if_t<is_multidimensional<Rk> &&
-      //     is_dynamic<Sz>>>
-      base(index_type const& shape, value_type const& val = 0);
 
-      base& assign(index_type const& shape, value_type const& val = value_type{});
+      base(list_type list);
+      base& operator=(list_type list);
+
+      template<
+        std::size_t _Sz = Sz,
+        typename = std::enable_if_t<is_dynamic<_Sz>>>
+      base(
+        index_type const& shape,
+        value_type const& val = value_type{} );
+
+      base& assign(
+        index_type const& shape,
+        value_type const& val = value_type{} );
+
+      void  resize(
+        index_type const& shape,
+        value_type const& val = value_type{} );
 
       index_type shape() const;
 

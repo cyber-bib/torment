@@ -27,24 +27,28 @@
     //   "console": "integratedTerminal"
     // },
     {
-      "name": "(LLDB) Testing",
-      "type": "lldb-dap",
+      "name": "Run GTests",
+      "type": "cppvsdbg",
       "request": "launch",
       "program": "${workspaceFolder}/build/tests/RelWithDebInfo/tests.exe",
-      "args": [],
+      "args": [
+        "--gtest_filter=*"
+      ],
       "cwd": "${workspaceFolder}",
-      "preLaunchTask": "build",
+      // "preLaunchTask": "build",
       "console": "integratedTerminal"
     },
     {
-      "name": "(CodeLLDB) Testing",
-      "type": "codelldb",
+      "name": "CTest",
+      "type": "cppvsdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/build/tests/RelWithDebInfo/tests.exe",
-      "args": [],
+      "program": "ctest",
+      "args": [
+        "--preset", "default"
+      ],
       "cwd": "${workspaceFolder}",
-      "preLaunchTask": "build",
+      // "preLaunchTask": "build",
       "console": "integratedTerminal"
-    }
+    },
   ]
 }

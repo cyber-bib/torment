@@ -22,14 +22,36 @@ namespace torment {
     }
 
     template< class T,
+              std::size_t Rk,
+              class Idx,
+              std::array<Idx, Rk> Sp,
+              std::size_t PxRk,
+              std::array<Idx, PxRk> PxSp>
+    struct proxy;
+
+    #ifdef _IOSTREAM_ // [
+
+    template< class T,
+              std::size_t Rk,
+              class Idx,
+              std::array<Idx, Rk> Sp,
+              std::size_t PxRk,
+              std::array<Idx, PxRk> PxSp>
+    std::ostream&
+    operator<<(
+      std::ostream &os,
+      proxy<T,Rk,Idx,Sp,PxRk, PxSp> const &arrg  );
+
+    #endif // ] _IOSTREAM_
+
+    template< class T,
               std::size_t Rk              = 0,
               class Idx                   = std::size_t,
               std::array<Idx, Rk> Sp      = std::array<Idx, Rk>{},
               std::size_t PxRk            = Rk,
               std::array<Idx, PxRk> PxSp  = std::array<Idx, PxRk>{}            >
-    struct proxy : base<decltype(Sp), PxRk, Idx, PxSp>
+    struct proxy : base<shape_t<Idx, Rk>, PxRk, Idx, PxSp>
     {
-
       static_assert(
         PxRk <= Rk,
         "proxy rank \"PxRk\" is not less than or equal to rank \"Rk\".");
@@ -37,8 +59,11 @@ namespace torment {
          is_subset_of(PxSp, Sp),
         "proxy shape \"PxSp\" is not a subset of shape \"Sp\".");
 
-      typedef base<decltype(Sp), PxRk, Idx, PxSp> base_type;
-      typedef base<           T,   Rk, Idx,   Sp> _xed_type;
+      typedef base<shape_t<Idx, Rk>, PxRk, Idx, PxSp> base_type;
+      typedef base<T, Rk, Idx, Sp> _xed_type;
+
+      typedef base_type::value_type proxy_val_t;
+      typedef base_type::index_type proxy_idx_t;
 
       typedef _xed_type::value_type value_type;
       typedef _xed_type::index_type index_type;
@@ -49,6 +74,10 @@ namespace torment {
 
       proxy(_xed_type &data);
 
+
+      proxy_val_t& operator()(proxy_idx_t const& addr);
+      value_type& operator[](proxy_idx_t const& addr);
+
       // template<
       //   std::size_t _Rk = Rk,
       //   typename = std::enable_if_t<is_multidimensional<_Rk>>  >
@@ -58,6 +87,14 @@ namespace torment {
       //   std::size_t _Rk = Rk,
       //   typename = std::enable_if_t<is_multidimensional<_Rk>>  >
       // value_type const& operator[](index_type const& addr) const;
+
+      #ifdef _IOSTREAM_ // {
+
+      friend  std::ostream&
+              operator<< <T,Rk,Idx,Sp,PxRk,PxSp> (  std::ostream &os,
+                                                    proxy const &arg  );
+
+      #endif // } _IOSTREAM_
     };
 
   };

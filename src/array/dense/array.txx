@@ -3,7 +3,7 @@
 #include "array.hxx"
 
 #include "core.txx"
-#include "proxy.txx"
+#include "proxy/core.txx"
 
 #include <algorithm>
 #include <execution>

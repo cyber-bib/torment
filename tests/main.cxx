@@ -438,26 +438,37 @@ TEST(DenseArrayProxyTests, ProjectionsTest) {
                   _3x3_                        >                      ipxy163_2;
 
   itsr163 a;
-  for(int i = 0; auto &e: a) e = i++;
+  for(int i = 0; auto &e: a) e = 0;
 
-  ipxy163_2 p(a);
-  for(u16 i = 0; i < 3; i++) {
-    for(u16 j = 0; j < 3; j++) {
-      p({i, j}) = {i, j, 1};
-    }
-  }
+  // ipxy163_2 p(a);
+  // for(u16 i = 0; i < 3; i++) {
+  //   for(u16 j = 0; j < 3; j++) {
+  //     p({i, j}) = {i, j, 1};
+  //   }
+  // }
+  // auto p = make_slice<2>(a, 1_u16);
 
-  p.begin();
+  // auto p = make_slice<1>(a, 2_u16);
+  // for(int i = 0; auto &e: p) e = 0;
 
-  for(int i = 0; auto &e: p) e = 0;
+  auto p = make_view< int,
+                      _3v3_.size(),
+                      decltype(_3v3_)::value_type,
+                      _3v3_,
+                      1,
+                      urr(0_u16),
+                      2,
+                      urr(1_u16, 2_u16)>
+                                                      (a, {0_u16, 0_u16});
+
+  for(int i = 0; auto &e: p) e = 1;
+
 
   // proxy<int, 3, u16, _3v3_, 2, _3x3_> p(a);
-
-
   // proxy<int, 2, u16, urr(4_u16, 4_u16), > p(a);
 
   std::cout << std::setw(2) << a << "\n\n";
-  std::cout << std::setw(2) << p << "\n";
+  // std::cout << std::setw(2) << p << "\n";
 
 }
 

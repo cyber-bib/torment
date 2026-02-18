@@ -224,8 +224,21 @@ IMPL_TMPLT_CLASS::addr_from(
 
   index_type addr;
 
-  if constexpr(is_dynamic<Rk>) {
+  if constexpr(is_dynamic<Rk>)
     addr.resize(this->m_shape.size());
+
+  auto shape = this->shape();
+  auto stride = this->strides();
+  std::size_t rem = id;
+
+  for (std::size_t i = shape.size(); i-- > 0;) {
+    auto s = static_cast<std::size_t>(stride[i]);
+    auto d = static_cast<std::size_t>(shape[i]);
+    if (s == 0 || d == 0) { addr[i] = 0; continue; }
+    // addr[i] = static_cast<decltype(addr[i])>((rem / s) % d);
+    addr[i] = static_cast<Idx>((rem / s) % d);
+
+    rem %= s;
   }
 
   return addr;

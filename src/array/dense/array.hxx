@@ -1,7 +1,7 @@
 #pragma once
 
 #include "core.hxx"
-#include "proxy.hxx"
+#include "proxy/core.hxx"
 #include "boost/operators.hpp"
 
 namespace torment {

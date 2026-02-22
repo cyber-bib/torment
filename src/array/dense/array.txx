@@ -3,6 +3,7 @@
 #include "array.hxx"
 
 #include "core.txx"
+#include "strided_view.txx"
 #include "proxy/core.txx"
 
 #include <algorithm>

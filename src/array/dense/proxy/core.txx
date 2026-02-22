@@ -4,8 +4,11 @@
 #include "iterator.txx"
 #include "iterable.txx"
 #include "core.txx"
+
 #include <stdexcept>
 #include <type_traits>
+#include <algorithm>
+#include <optional>
 
 
 #ifndef IMPL_TMPLT_PARAM_HEADER
@@ -67,38 +70,71 @@ namespace dense {
 
   template<class T, std::size_t N>
   constexpr bool in_range(
-    std::array<T, N> const& axes,
+    std::array<T, N> const& dims,
     T rank
   ) {
-    static_assert(std::is_integral_v<T>,
-      "Axis type must be integral.");
+    static_assert(  std::is_integral_v<T>,
+                    "'T' type must be integral."  );
 
-    for(std::size_t i = 0; i < N; i++) {
-      if(!(axes[i] < rank)) return false;
-    }
-    return true;
+    return std::all_of( dims.begin(),
+                        dims.end(),
+                        [rank](T el) { return el < rank; }  );
+
+  }
+  template<class T, std::size_t N>
+  constexpr bool in_range(
+    std::array<std::optional<T>, N> const& dims,
+    T rank
+  ) {
+    static_assert(  std::is_integral_v<T>,
+                    "'T' type must be integral."  );
+
+    return std::all_of( dims.begin(),
+                        dims.end(),
+                        [rank](std::optional<T> el) { return el.value_or(0) < rank; }  );
   }
 
   template<class T, std::size_t N>
-  constexpr bool unique(std::array<T, N> const& axes) {
-    for(std::size_t i = 0; i < N; i++) {
-      for(std::size_t j = i + 1; j < N; j++) {
-        if(axes[i] == axes[j]) return false;
-      }
+  constexpr bool is_sorted_set(std::array<T, N> const& data) {
+    if constexpr(N == 0 || N == 1) {
+      return true;
     }
+
+    if( !std::is_sorted(  data.begin(),
+                          data.end())
+    ) return false;
+
+    if( auto it = std::adjacent_find( data.begin(),
+                                      data.end()    );
+        it != data.end()
+    ) return false;
+
+
     return true;
   }
 
   template<class T, std::size_t N1, std::size_t N2>
-  constexpr bool disjoint(
-    std::array<T, N1> const& a1,
-    std::array<T, N2> const& a2
+  constexpr bool are_disjoint_sets (
+    std::array<T, N1> const& lhs,
+    std::array<T, N2> const& rhs
   ) {
-    for(std::size_t i = 0; i < N1; i++) {
-      for(std::size_t j = 0; j < N2; j++) {
-        if(a1[i] == a2[j]) return false;
-      }
+    if constexpr(N1 == 0 || N2 == 0) {
+      return true;
     }
+
+    if(!is_sorted_set(lhs))
+      return false;
+
+    if(!is_sorted_set(rhs))
+      return false;
+
+
+    auto min = std::min(lhs.back(), rhs.back());
+    auto max = std::max(lhs.front(), rhs.front());
+
+    if(min >= max)
+      return false;
+
     return true;
   }
 
@@ -127,57 +163,36 @@ namespace dense {
       m_data(data) {}
 
   IMPL_TMPLT_PARAM_HEADER
-  void IMPL_TMPLT_CLASS::bind_view(
-    std::array<Idx, PxRk> const& free_axes,
-    std::array<Idx, Rk - PxRk> const& fixed_axes,
-    std::array<Idx, Rk - PxRk> const& fixed_vals
+  IMPL_TMPLT_CLASS& IMPL_TMPLT_CLASS::bind_view (
+    std::array<std::optional<Idx>, Rk> const& view
   ) {
-    if(!in_range(free_axes, static_cast<Idx>(Rk)))
-      throw std::logic_error("Free axis out of range.");
-    if(!in_range(fixed_axes, static_cast<Idx>(Rk)))
-      throw std::logic_error("Fixed axis out of range.");
-    if(!unique(free_axes))
-      throw std::logic_error("Free axes must be unique.");
-    if(!unique(fixed_axes))
-      throw std::logic_error("Fixed axes must be unique.");
-    if(!disjoint(free_axes, fixed_axes))
-      throw std::logic_error("Free and fixed axes must be disjoint.");
+    if constexpr(Rk == 0) {
+      static_assert(false, "logic has not been implemented.");
+      return;
+    } else if constexpr(Rk == 1) {
+      static_assert(PxRk == 1, "For Rk == 1, PxRk must be 1.");
 
-    for(std::size_t id = 0; id < this->size(); id++) {
-      proxy_idx_t px{};
-      if constexpr(is_multidimensional<PxRk>)
-        px = this->addr_from(id);
-      else
-        px = static_cast<proxy_idx_t>(id);
+      // this seems silly
+      static_assert(false, "logic has not been implemented.");
+    } else {
+      for(std::size_t i = 0; auto const &elem : view)
+        if(!(elem.value_or(0) < Sp[i++]))
+          throw std::logic_error(
+                  "'view' fixed value is out of shape bounds." );
 
-      index_type full{};
-      for(std::size_t axis = 0; axis < Rk; axis++) {
-        bool assigned = false;
+      auto& ref = static_cast<base_type&>(*this);
+      for(std::size_t i = 0; auto &ithel : ref) {
+        auto iddr = ref.addr_from(i++);
 
-        for(std::size_t fi = 0; fi < PxRk; fi++) {
-          if(free_axes[fi] == static_cast<Idx>(axis)) {
-            if constexpr(is_multidimensional<PxRk>)
-              full[axis] = px[fi];
-            else
-              full[axis] = static_cast<Idx>(px);
-            assigned = true;
-            break;
-          }
-        }
-
-        if(!assigned) {
-          for(std::size_t ki = 0; ki < (Rk - PxRk); ki++) {
-            if(fixed_axes[ki] == static_cast<Idx>(axis)) {
-              full[axis] = fixed_vals[ki];
-              assigned = true;
-              break;
-            }
-          }
+        for(std::size_t j = 0, k = 0; auto &jthel : view) {
+          ithel[j++] = jthel.value_or(iddr[k]);
+          k += !jthel.has_value() ? 1 : 0;
         }
       }
 
-      (*this)(px) = full;
     }
+
+    return *this;
   }
 
   IMPL_TMPLT_PARAM_HEADER
@@ -314,9 +329,9 @@ make_view(base<T, Rk, Idx, Sp> &data, std::array<Idx, NFixed> const& fixed_vals)
     "Free and fixed axis counts must add up to tensor rank.");
   static_assert(in_range(FreeAxes, static_cast<Idx>(Rk)), "Free axis out of range.");
   static_assert(in_range(FixedAxes, static_cast<Idx>(Rk)), "Fixed axis out of range.");
-  static_assert(unique(FreeAxes), "Free axes must be unique.");
-  static_assert(unique(FixedAxes), "Fixed axes must be unique.");
-  static_assert(disjoint(FreeAxes, FixedAxes),
+  static_assert(is_sorted_set(FreeAxes), "Free axes must be a sorted set.");
+  static_assert(is_sorted_set(FixedAxes), "Fixed axes must be sorted set.");
+  static_assert(are_disjoint_sets(FreeAxes, FixedAxes),
     "Free and fixed axes must be disjoint.");
 
   using proxy_type = proxy<
@@ -328,7 +343,13 @@ make_view(base<T, Rk, Idx, Sp> &data, std::array<Idx, NFixed> const& fixed_vals)
     select_shape(Sp, FreeAxes)>;
 
   proxy_type dst(data);
-  dst.bind_view(FreeAxes, FixedAxes, fixed_vals);
+  std::array<std::optional<Idx>, Rk> view{};
+  view.fill(std::nullopt);
+  for(std::size_t i = 0; i < NFixed; i++) {
+    view[static_cast<std::size_t>(FixedAxes[i])] = fixed_vals[i];
+  }
+
+  dst.bind_view(view);
   return dst;
 }
 };

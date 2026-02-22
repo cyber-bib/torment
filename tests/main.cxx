@@ -95,6 +95,9 @@ constexpr u64 operator "" _u64(unsigned long long val) {
   return val;
 };
 
+template<class T>
+using opt = std::optional<T>;
+
 template< class T,
           std::size_t N = 0,
           std::array<std::uint64_t, N> Sp = std::array<std::uint64_t, N>{}>
@@ -420,8 +423,9 @@ TEST(DenseArrayProxyTests, StaticOneToOneTest) {
   // std::cout << std::setw(2) << a << "\n";
 }
 
-TEST(DenseArrayProxyTests, ProjectionsTest) {
+TEST(DenseArrayProxyTests, StaticProjectionsTest) {
   using namespace torment::dense;
+  auto &nullopt = std::nullopt;
 
   constexpr auto _3x3_ = urr(3_u16, 3_u16);
   constexpr auto _3v3_ = urr(3_u16, 3_u16, 3_u16);
@@ -437,39 +441,67 @@ TEST(DenseArrayProxyTests, ProjectionsTest) {
                   _3x3_.size(),
                   _3x3_                        >                      ipxy163_2;
 
-  itsr163 a;
+  itsr163 a, b;
+  b = { 1, 1, 2,
+        2, 2, 3,
+        1, 1, 2,
+
+        0, 0, 1,
+        1, 1, 2,
+        0, 0, 1,
+
+        0, 0, 1,
+        1, 1, 2,
+        0, 0, 1  };
+
+
   for(int i = 0; auto &e: a) e = 0;
 
-  // ipxy163_2 p(a);
-  // for(u16 i = 0; i < 3; i++) {
-  //   for(u16 j = 0; j < 3; j++) {
-  //     p({i, j}) = {i, j, 1};
-  //   }
+  ipxy163_2 p(a);
+
+  p.bind_view({nullopt, nullopt, 0});
+  for(int i = 0; auto &e: p) e += 1;
+
+  p.bind_view({nullopt, 1, nullopt});
+  for(int i = 0; auto &e: p) e += 1;
+
+  p.bind_view({2, nullopt, nullopt});
+  for(int i = 0; auto &e: p) e += 1;
+
+  EXPECT_EQ(a, b);
+
+
+  // shape_t<opt<u16>, 3> view = {std::nullopt, std::nullopt, 2};
+  // for(u64 i = 0; auto &ithel : pref) {
+  //   auto iddr = pref.addr_from(i++);
+
+  //   for(u64 j = 0; auto &jthel : view)
+  //     ithel[j++] = jthel.value_or(iddr[j]);
   // }
+
+
   // auto p = make_slice<2>(a, 1_u16);
 
   // auto p = make_slice<1>(a, 2_u16);
   // for(int i = 0; auto &e: p) e = 0;
 
-  auto p = make_view< int,
-                      _3v3_.size(),
-                      decltype(_3v3_)::value_type,
-                      _3v3_,
-                      1,
-                      urr(0_u16),
-                      2,
-                      urr(1_u16, 2_u16)>
-                                                      (a, {0_u16, 0_u16});
+  // auto p = make_view< int,
+  //                     _3v3_.size(),
+  //                     decltype(_3v3_)::value_type,
+  //                     _3v3_,
+  //                     1,
+  //                     urr(0_u16),
+  //                     2,
+  //                     urr(1_u16, 2_u16)>
+  //                                                     (a, {0_u16, 0_u16});
 
-  for(int i = 0; auto &e: p) e = 1;
 
 
   // proxy<int, 3, u16, _3v3_, 2, _3x3_> p(a);
   // proxy<int, 2, u16, urr(4_u16, 4_u16), > p(a);
 
-  std::cout << std::setw(2) << a << "\n\n";
-  // std::cout << std::setw(2) << p << "\n";
-
+  // std::cout << std::setw(2) << a << "\n\n";
+  // std::cout << std::setw(2) << b << "\n\n";
 }
 
 // TEST(DenseArrayTests, MultiSubscriptAcessTest) {

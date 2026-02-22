@@ -133,6 +133,12 @@ namespace torment {
       class Idx,
       std::array<Idx, Rk> Sp,
       std::size_t Sz> struct base;
+    template<
+      class T,
+      std::size_t Rk,
+      class Idx,
+      std::array<Idx, Rk> Sp,
+      std::size_t Sz> struct strided_view;
 
     #ifdef _IOSTREAM_ // [
 
@@ -172,6 +178,7 @@ namespace torment {
 
       typedef typename base_type::list_type list_type;
       typedef typename base_type::value_type value_type;
+      typedef strided_view<T, Rk, Idx, Sp, Sz> strided_view_type;
 
       using base_type::base_type;
       using base_type::operator[];
@@ -226,6 +233,7 @@ namespace torment {
         std::size_t _Rk = Rk,
         typename = std::enable_if_t<is_multidimensional<_Rk>>  >
       index_type addr_from(std::size_t const& id) const;
+
 
       #ifdef _IOSTREAM_ // {
 

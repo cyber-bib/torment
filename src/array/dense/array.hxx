@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core.hxx"
+#include "strided_view.hxx"
 #include "proxy/core.hxx"
 #include "boost/operators.hpp"
 

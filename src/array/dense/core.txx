@@ -2,6 +2,7 @@
 
 #include "core.hxx"
 #include "smart_container.txx"
+#include "strided_view.hxx"
 
 #ifndef IMPL_TMPLT_PARAM_HEADER
 # define  IMPL_TMPLT_PARAM_HEADER                                               \
@@ -243,7 +244,6 @@ IMPL_TMPLT_CLASS::addr_from(
 
   return addr;
 }
-
 
 #ifdef _IOSTREAM_ // [
 

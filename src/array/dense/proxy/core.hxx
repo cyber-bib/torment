@@ -1,5 +1,7 @@
 #pragma once
 
+#include <optional>
+
 #include "core.hxx"
 #include "iterator.hxx"
 #include "iterable.hxx"
@@ -24,14 +26,18 @@ namespace torment {
     constexpr bool in_range(
       std::array<T, N> const& axes,
       T rank);
+    template<class T, std::size_t N>
+    constexpr bool in_range(
+      std::array<std::optional<T>, N> const& view,
+      T rank);
 
     template<class T, std::size_t N>
-    constexpr bool unique(std::array<T, N> const& axes);
+    constexpr bool is_sorted_set(std::array<T, N> const& data);
 
     template<class T, std::size_t N1, std::size_t N2>
-    constexpr bool disjoint(
-      std::array<T, N1> const& a1,
-      std::array<T, N2> const& a2  );
+    constexpr bool are_disjoint_sets(
+      std::array<T, N1> const& lhs,
+      std::array<T, N2> const& rhs  );
 
   template<
     class Idx,
@@ -104,10 +110,9 @@ namespace torment {
 
       proxy(_xed_type &data);
 
-      void bind_view(
-        std::array<Idx, PxRk> const& free_axes,
-        std::array<Idx, Rk - PxRk> const& fixed_axes,
-        std::array<Idx, Rk - PxRk> const& fixed_vals);
+      // template<T,Rk,Idx,Sp,PxRk,PxSp>
+      proxy& bind_view(
+        std::array<std::optional<Idx>, Rk> const& view);
 
       proxy_val_t& operator()(proxy_idx_t const& addr);
       proxy_val_t const& operator()(proxy_idx_t const& addr) const;

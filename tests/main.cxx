@@ -395,7 +395,7 @@ TEST(DenseArrayProxyTests, StaticOneToOneTest) {
   base<int, 2, u16, _4x4_> a;
   for(int i = 0; auto &e: a) e = i++;
 
-  proxy<int, 2, u16, _4x4_, 2, _4x4_> p(a);
+  proxy<int, 2, u16, _4x4_> p(a);
   for(u8 i = 0; i < 4; i++) {
     for(u8 j = 0; j < 4; j++) {
       p({i, j}) = {i, j};
@@ -419,10 +419,9 @@ TEST(DenseArrayProxyTests, StaticOneToOneTest) {
 
   EXPECT_EQ(as.str(), ps.str());
 
-  // std::cout << std::setw(2) << a << "\n";
-  // std::cout << std::setw(2) << a << "\n";
+  std::cout << std::setw(2) << a << "\n";
+  std::cout << std::setw(2) << a << "\n";
 }
-
 TEST(DenseArrayProxyTests, StaticProjectionsTest) {
   using namespace torment::dense;
   auto &nullopt = std::nullopt;
@@ -437,9 +436,7 @@ TEST(DenseArrayProxyTests, StaticProjectionsTest) {
   typedef proxy<  int,
                   _3v3_.size(),
                   decltype(_3v3_)::value_type,
-                  _3v3_,
-                  _3x3_.size(),
-                  _3x3_                        >                      ipxy163_2;
+                  _3v3_                        >                      ipxy163_2;
 
   itsr163 a, b;
   b = { 1, 1, 2,
@@ -499,6 +496,83 @@ TEST(DenseArrayProxyTests, StaticProjectionsTest) {
 
   // proxy<int, 3, u16, _3v3_, 2, _3x3_> p(a);
   // proxy<int, 2, u16, urr(4_u16, 4_u16), > p(a);
+
+  // std::cout << std::setw(2) << a << "\n\n";
+  // std::cout << std::setw(2) << b << "\n\n";
+}
+TEST(DenseArrayProxyTests, DynamicOneToOneTest) {
+  using namespace torment::dense;
+
+  using idx_t = u16;
+  using shape0 = shape_t<idx_t, 0>;
+
+  shape0 shp = {4, 4};
+  base<int, 0, idx_t> a(shp, 0);
+
+  for(int i = 0; auto &e: a) e = i++;
+
+  proxy<int, 0, idx_t> p(a);
+
+  std::stringstream as;
+  std::stringstream ps;
+  as << std::setw(2) << a;
+  ps << std::setw(2) << p;
+  EXPECT_EQ(as.str(), ps.str());
+
+  for(idx_t i = 0; i < 4; i++) {
+    for(idx_t j = 0; j < 4; j++) {
+      // p[shape0{i, j}] = static_cast<int>((10 * i) + j);
+
+      p({i, j}) = {i, j};
+    }
+  }
+
+  as.str("");
+  ps.str("");
+  as << std::setw(2) << a;
+  ps << std::setw(2) << p;
+  EXPECT_EQ(as.str(), ps.str());
+
+  std::cout << std::setw(2) << a << "\n";
+  std::cout << std::setw(2) << a << "\n";
+}
+TEST(DenseArrayProxyTests, DynamicProjectionsTest) {
+  using namespace torment::dense;
+  auto &nullopt = std::nullopt;
+
+  using idx_t = u16;
+  using shape0 = shape_t<idx_t, 0>;
+
+  shape0 shp = {3, 3, 3};
+  base<int, 0, idx_t> a(shp, 0), b(shp, 0);
+
+  b = { 1, 1, 2,
+        2, 2, 3,
+        1, 1, 2,
+
+        0, 0, 1,
+        1, 1, 2,
+        0, 0, 1,
+
+        0, 0, 1,
+        1, 1, 2,
+        0, 0, 1  };
+
+  proxy<int, 0, idx_t> p(a);
+
+  typename decltype(p)::view_type v1 = {nullopt, nullopt, idx_t(0)};
+  p.bind_view(v1);
+  for(int i = 0; auto &e: p) e += 1;
+
+  typename decltype(p)::view_type v2 = {nullopt, idx_t(1), nullopt};
+  p.bind_view(v2);
+  for(int i = 0; auto &e: p) e += 1;
+
+  typename decltype(p)::view_type v3 = {idx_t(2), nullopt, nullopt};
+  p.bind_view(v3);
+  for(int i = 0; auto &e: p) e += 1;
+
+  EXPECT_EQ(a, b);
 
   // std::cout << std::setw(2) << a << "\n\n";
   // std::cout << std::setw(2) << b << "\n\n";

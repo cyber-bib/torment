@@ -51,9 +51,7 @@ namespace torment {
     template< class T,
               std::size_t Rk,
               class Idx,
-              std::array<Idx, Rk> Sp,
-              std::size_t PxRk,
-              std::array<Idx, PxRk> PxSp>
+              std::array<Idx, Rk> Sp >
     struct proxy;
 
     #ifdef _IOSTREAM_ // [
@@ -61,70 +59,65 @@ namespace torment {
     template< class T,
               std::size_t Rk,
               class Idx,
-              std::array<Idx, Rk> Sp,
-              std::size_t PxRk,
-              std::array<Idx, PxRk> PxSp>
+              std::array<Idx, Rk> Sp>
     std::ostream&
     operator<<(
       std::ostream &os,
-      proxy<T,Rk,Idx,Sp,PxRk, PxSp> const &arrg  );
+      proxy<T,Rk,Idx,Sp> const &arrg  );
 
     #endif // ] _IOSTREAM_
 
     template< class T,
               std::size_t Rk              = 0,
               class Idx                   = std::size_t,
-              std::array<Idx, Rk> Sp      = std::array<Idx, Rk>{},
-              std::size_t PxRk            = Rk,
-              std::array<Idx, PxRk> PxSp  = std::array<Idx, PxRk>{}            >
-    struct proxy : base<shape_t<Idx, Rk>, PxRk, Idx, PxSp>,
-                   proxy_iterable<proxy<T,Rk,Idx,Sp,PxRk,PxSp>>
+              std::array<Idx, Rk> Sp      = std::array<Idx, Rk>{} >
+    struct proxy
+    : proxy_iterable<proxy<T,Rk,Idx,Sp>>
     {
-      static_assert(
-        PxRk <= Rk,
-        "proxy rank \"PxRk\" is not less than or equal to rank \"Rk\".");
-      static_assert(
-         is_subset_of(PxSp, Sp),
-        "proxy shape \"PxSp\" is not a subset of shape \"Sp\".");
+      typedef proxy_iterable<proxy<T,Rk,Idx,Sp>> iterable_type;
 
-      typedef base<shape_t<Idx, Rk>, PxRk, Idx, PxSp> base_type;
-      typedef proxy_iterable<proxy<T,Rk,Idx,Sp,PxRk,PxSp>> iterable_type;
+      typedef base<T,Rk,Idx,Sp> _xed_type;
 
-      typedef base<T, Rk, Idx, Sp> _xed_type;
+      typedef typename _xed_type::value_type value_type;
+      typedef typename _xed_type::index_type index_type;
 
-      typedef base_type::value_type proxy_val_t;
-      typedef base_type::index_type proxy_idx_t;
+      typedef index_type proxy_val_t;
+      typedef shape_t<Idx, 0> proxy_idx_t;
 
-      typedef _xed_type::value_type value_type;
-      typedef _xed_type::index_type index_type;
+      typedef std::conditional_t<
+        is_dynamic<Rk>,
+        shape_t<std::optional<Idx>, 0>,
+        std::array<std::optional<Idx>, Rk>
+      > view_type;
+      static constexpr std::size_t proxy_rank = 0;
 
-      static constexpr std::size_t proxy_rank = PxRk;
 
-      // using base_type::base_type;
       using iterable_type::begin;
       using iterable_type::end;
       using iterable_type::cbegin;
       using iterable_type::cend;
 
       _xed_type &m_data;
+      view_type  m_view;
 
-      proxy(_xed_type &data);
+      explicit proxy(_xed_type &data);
+      proxy(_xed_type &data, view_type const& view);
 
-      // template<T,Rk,Idx,Sp,PxRk,PxSp>
-      proxy& bind_view(
-        std::array<std::optional<Idx>, Rk> const& view);
+      proxy& bind_view(view_type const& view);
 
-      proxy_val_t& operator()(proxy_idx_t const& addr);
-      proxy_val_t const& operator()(proxy_idx_t const& addr) const;
+      proxy_val_t operator()(proxy_idx_t const& addr) const;
 
       value_type& operator[](proxy_idx_t const& addr);
       value_type const& operator[](proxy_idx_t const& addr) const;
+
+      proxy_idx_t shape() const;
+      std::size_t size() const;
+      proxy_idx_t addr_from(std::size_t const& id) const;
 
       // template<
       //   std::size_t _Rk = Rk,
       //   typename = std::enable_if_t<is_multidimensional<_Rk>>  >
       // value_type& operator[](index_type const& addr);
-
       // template<
       //   std::size_t _Rk = Rk,
       //   typename = std::enable_if_t<is_multidimensional<_Rk>>  >
@@ -133,29 +126,11 @@ namespace torment {
       #ifdef _IOSTREAM_ // {
 
       friend  std::ostream&
-              operator<< <T,Rk,Idx,Sp,PxRk,PxSp> (  std::ostream &os,
-                                                    proxy const &arg  );
+              operator<< <T,Rk,Idx,Sp> (  std::ostream &os,
+                                          proxy const &arg  );
 
       #endif // } _IOSTREAM_
     };
-
-    template<
-      class T,
-      std::size_t Rk,
-      class Idx,
-      std::array<Idx, Rk> Sp,
-      std::size_t NFree,
-      std::array<Idx, NFree> FreeAxes,
-      std::size_t NFixed,
-      std::array<Idx, NFixed> FixedAxes>
-    proxy<
-      T,
-      Rk,
-      Idx,
-      Sp,
-      NFree,
-      select_shape(Sp, FreeAxes)>
-    make_view(base<T, Rk, Idx, Sp> &data, std::array<Idx, NFixed> const& fixed_vals);
 
   };
 

@@ -15,26 +15,39 @@
 #include <array>
 #include <cmath>
 #include <random>
+#include <memory>
 #include <iostream>
 
+#define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
 
-#include "vector/dense/core.txx"
+// #include "array/dense/array.txx"
+#include "matrix/dense/core.txx"
 
-namespace torment {
+constexpr std::size_t WIDTH = 512,
+                      HEIGHT = 512,
+                      CHANNELS = 4,
+                      PITCH = CHANNELS*WIDTH;
 
-namespace dense {
+template<class T, std::size_t S = 0>
+using vec = torment::dense::array<T, 1, std::size_t, torment::dense::urr(S)>;
+// template<class T, std::size_t R = 0, std::size_t C = 0>
+// using matrix = torment::dense::array<T, 2, std::size_t, torment::dense::urr(R, C)>;
+template<class T, std::size_t R = 0, std::size_t C = 0, std::size_t S = 0>
+using triad = torment::dense::array<T, 3, std::size_t, torment::dense::urr(R, C, S)>;
 
-  template<class T, std::size_t R = 0, std::size_t C = 0>
-  struct matrix : base<T, 2, std::size_t, urr(R, C)> {
+template<class T>
+using vp_triad = triad<T, CHANNELS, WIDTH, HEIGHT>;
+template<class T>
+using vp_matrix = torment::dense::matrix<T, WIDTH, HEIGHT>;
+template<class T>
+using qvp_matrix = torment::dense::matrix<T, WIDTH/2, HEIGHT/2>;
 
-  };
+typedef vec<double, 3> vec3;
 
-};
-
-};
-
-typedef torment::dense::vector<double, 3> vec3;
+typedef vp_triad<unsigned char> vp_triad_u8;
+typedef vp_matrix<double> vp_matrix_f64;
+typedef qvp_matrix<double> qvp_matrix_f64;
 
 double sigmoid(double t) {
   return 1.0/(1.0 + std::exp(-t));
@@ -95,10 +108,13 @@ void pixel_test_palette (
 int main(int argc, char *argv[]) {
   std::random_device device;
   std::mt19937_64 generator(0);
-  std::uniform_real_distribution<double> distribution(-1.0, 1.0);
+  std::uniform_int_distribution<unsigned short> dist_u16(0, 255);
+  std::uniform_real_distribution<double> dist_f64(-1.0, 1.0);
 
-  int  width = 512,
-      height = 512;
+
+  int  width = WIDTH,
+      height = HEIGHT,
+       pitch = 4*width;
 
   bool quit = false;
 
@@ -107,29 +123,36 @@ int main(int argc, char *argv[]) {
   SDL_Texture* texture = nullptr;
 
   unsigned char *pixels;
-  int pitch = 4*width;
 
-  // typedef tormentor::matrix mat;
-  // typedef tormentor::matrix mat_prx;
-  // mat iM({(std::size_t)height/2, (std::size_t)width/2}),
-  //     Mi({(std::size_t)height/2, (std::size_t)width/2}),
-  //     MiiM, iMMi;
+  // triad<unsigned char, CHANNELS, WIDTH, HEIGHT> viewport;
+  // matrix<double, WIDTH/2, HEIGHT/2> iM, Mi, MiiM, iMMi;
+  // auto  vp_pntr   = std::make_unique<vp_triad_u8>();
+  auto  vp_pntr   = std::make_unique< vp_matrix_f64>();
+  // auto  iM_pntr   = std::make_unique<qvp_matrix_f64>(),
+  //       Mi_pntr   = std::make_unique<qvp_matrix_f64>(),
+  //       MiiM_pntr = std::make_unique<qvp_matrix_f64>(),
+  //       iMMi_pntr = std::make_unique<qvp_matrix_f64>();
 
-  // for(int i = 0; i < iM.rows(); i++) {
-  //   for(int j = 0; j < iM.cols(); j++) {
-  //     // M(i, j) = j < M.cols()/2 ? (i==j ? 1.0 : distribution(generator)) : (i + M.rows() == j ? 1.0 : 0.0);
-  //     // M(i, j) = j < M.cols()/2 ? distribution(generator) : (i + M.rows() == j ? 1.0 : 0.0);
-  //     iM(i, j) = i == j ? 1.0 : 0.0;
-  //     Mi(i, j) = distribution(generator);
-  //   }
+  auto  &vp   = *vp_pntr;
+  // auto  &iM   = *iM_pntr,
+  //       &Mi   = *Mi_pntr,
+  //       &MiiM = *MiiM_pntr,
+  //       &iMMi = *iMMi_pntr;
+
+
+  for(auto &val : vp) val = dist_f64(generator);
+
+  // for(auto &val : Mi) val = dist_f64(generator);
+
+  // for(std::size_t i = 0; auto &val : iM) {
+  //   auto v = iM.addr_from(i++);
+  //   val = (v.front() == v.back()) ? 1.0 : 0.0;
+  // }
+  // for(std::size_t i = 0; auto &val : iM) {
+  //   auto v = iM.addr_from(i++);
+  //   val = (v.front() == v.back()) ? 1.0 : 0.0;
   // }
 
-  // for(int i = width/2; i < width; i++) {
-  //   for(int j = 0; j < height/2; j++) {
-  //     M(i, j) = i < j ? 10.0 : 0.0;
-  //     // M(i, j) = 10;
-  //   }
-  // }
 
 # pragma region SDL2 Start Up [
 
@@ -172,6 +195,8 @@ int main(int argc, char *argv[]) {
     goto close_program;
   }
 
+# pragma endregion ] SDL2 Start Up
+
   if(auto errCode = SDL_LockTexture(texture,
                                     nullptr,
                                     reinterpret_cast<void**>(&pixels),
@@ -181,42 +206,60 @@ int main(int argc, char *argv[]) {
     goto close_program;
   }
 
-# pragma endregion ] SDL2 Start Up
 
   // iM = Mi.inv();
-
   // MiiM = Mi*iM;
   // iMMi = iM*Mi;
 
-  for(int i = 0; i < width; i++) {
-    for(int j = 0; j < height; j++) {
-      // auto color = rainbow_palette((10.0*i)/width -1.0);
-      // auto color = rainbow_palette(distribution(generator));
-      // vec3 color;// = rainbow_palette(M(i,j));
 
-      // if(i < width/2 && j < height/2) {
-      //   color = rainbow_palette(Mi(j%Mi.rows(),i%Mi.cols()));
-      //   // color = rainbow_palette(-10);
-      // } else if(i < width/2 && j >= height/2) {
-      //   // color = rainbow_palette(M(j, i%M.cols()));
-      //   // color = rainbow_palette(-100);
-      //   color = rainbow_palette(iMMi(j%iMMi.rows(),i%iMMi.cols()));
-      //   // color = rainbow_palette(-0.5);
-      // } else if(i >= width/2 && j < height/2) {
-      //   // color = rainbow_palette(MiM(j, i%M.cols()));
-      //   // color = rainbow_palette(0.5);
-      //   color = rainbow_palette(MiiM(j%MiiM.rows(),i%MiiM.cols()));
-      // } else {
-      //   // color = rainbow_palette(iM(j%iM.rows(),i%iM.cols()));
-      //   // color = rainbow_palette(10);
-      // }
+  // for(int i = 0; i < width; i++) {
+  //   for(int j = 0; j < height; j++) {
+  //     // auto color = rainbow_palette((10.0*i)/width -1.0);
+  //     // auto color = rainbow_palette(dist_f64(generator));
+  //     // vec3 color;// = rainbow_palette(M(i,j));
 
-      // pixels[i*4 + j*pitch + 0] = 256.0f*color[0];
-      // pixels[i*4 + j*pitch + 1] = 256.0f*color[1];
-      // pixels[i*4 + j*pitch + 2] = 256.0f*color[2];
-      // pixels[i*4 + j*pitch + 3] = 255;
-    }
+  //     // if(i < width/2 && j < height/2) {
+  //     //   color = rainbow_palette(Mi(j%Mi.rows(),i%Mi.cols()));
+  //     //   // color = rainbow_palette(-10);
+  //     // } else if(i < width/2 && j >= height/2) {
+  //     //   // color = rainbow_palette(M(j, i%M.cols()));
+  //     //   // color = rainbow_palette(-100);
+  //     //   color = rainbow_palette(iMMi(j%iMMi.rows(),i%iMMi.cols()));
+  //     //   // color = rainbow_palette(-0.5);
+  //     // } else if(i >= width/2 && j < height/2) {
+  //     //   // color = rainbow_palette(MiM(j, i%M.cols()));
+  //     //   // color = rainbow_palette(0.5);
+  //     //   color = rainbow_palette(MiiM(j%MiiM.rows(),i%MiiM.cols()));
+  //     // } else {
+  //     //   // color = rainbow_palette(iM(j%iM.rows(),i%iM.cols()));
+  //     //   // color = rainbow_palette(10);
+  //     // }
+
+  //     // pixels[i*4 + j*pitch + 0] = 256.0f*color[0];
+  //     // pixels[i*4 + j*pitch + 1] = 256.0f*color[1];
+  //     // pixels[i*4 + j*pitch + 2] = 256.0f*color[2];
+  //     // pixels[i*4 + j*pitch + 3] = 255;
+  //   }
+  // }
+
+  // {
+  //   const std::size_t dst_count = static_cast<std::size_t>(pitch) * static_cast<std::size_t>(height) / sizeof(*pixels);
+  //   const std::size_t src_count = viewport.size();
+
+  //   if (!pixels) throw std::runtime_error("pixels is null");
+  //   if (src_count > dst_count) throw std::runtime_error("copy would overflow destination");
+  // }
+
+  for(std::size_t i = 0; auto &val : vp) {
+    auto v = vp.addr_from(i++);
+    auto color = rainbow_palette(val);
+
+    pixels[v[0]*CHANNELS + v[1]*PITCH + 0] = 256.0f*color[0];
+    pixels[v[0]*CHANNELS + v[1]*PITCH + 1] = 256.0f*color[1];
+    pixels[v[0]*CHANNELS + v[1]*PITCH + 2] = 256.0f*color[2];
+    pixels[v[0]*CHANNELS + v[1]*PITCH + 3] = 255;
   }
+  // std::copy_n(viewport->begin(), viewport->size(), pixels);
   // pixel_test_palette(pixels, width, height);
 
   SDL_UnlockTexture(texture);

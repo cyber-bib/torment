@@ -107,7 +107,21 @@ namespace torment {
 
       struct element_iterator_base;
       struct element_iterator;
-      struct element_const_iterator;
+      struct element_const_iterator
+      : boost::incrementable<element_const_iterator>,
+        boost::equivalent<element_const_iterator>
+      {
+        typedef typename radix::unsigned_mixed_system<Index, Rank> iterable_type;
+
+        iterable_type m_ikey;
+        base const &m_chain;
+
+        explicit element_const_iterator(iterable_type const& ikey, base const &chain);
+
+        value_type const& operator*() const;
+        element_const_iterator& operator++();
+        bool operator<(element_const_iterator const &rhs) const;
+      };
 
       element_iterator begin();
       element_const_iterator begin() const;
@@ -179,17 +193,6 @@ namespace torment {
       bool operator<(element_iterator const &rhs) const;
     };
 
-
-    // template<class V, std::size_t R, class I, class K, class C>
-    // struct base<V,R,I,K,C>::element_const_iterator {
-    //   typedef typename radix::unsigned_mixed_system<I, R> iterable_type;
-
-    //   iterable_type m_ikey;
-    //   base &m_chain;
-    //   bool m_ignore_first_equallity;
-
-    //   explicit element_const_iterator(iterable_type const& ikey, base &chain);
-    // };
 
     // template<class V, class K, class C>
     // base<V,K,C>::key_type const& base<V,K,C>::shape() const {

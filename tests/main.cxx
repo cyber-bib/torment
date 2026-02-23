@@ -348,13 +348,13 @@ TEST(DenseArrayCoreTests, LowRankInitialization) {
   typedef base<int, 1, u16> u16vec;
 
 
-  base<int, 1, u16> v(4, 1);
+  base<int, 1, u16> v(static_cast<u16>(4), 1);
   u16vec t = {1, 1, 1, 1};
 
   EXPECT_EQ(t.shape(), 4);
   EXPECT_EQ(v, t);
 
-  v.assign(3, 2);
+  v.assign(static_cast<u16>(3), 2);
   t = {2, 2, 2};
 
   EXPECT_EQ(t.shape(), 3);

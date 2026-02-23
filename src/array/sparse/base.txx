@@ -358,6 +358,32 @@ namespace torment {
       return dst;
     }
 
+    template< class V, std::size_t R, class I, class K, class C>
+    base<V,R,I,K,C>::element_const_iterator::element_const_iterator(
+      iterable_type const& ikey,
+      base const &chain
+    ) : m_ikey(ikey), m_chain(chain) {}
+
+    template< class V, std::size_t R, class I, class K, class C>
+    typename base<V,R,I,K,C>::value_type const&
+    base<V,R,I,K,C>::element_const_iterator::operator*() const {
+      return this->m_chain[this->m_ikey];
+    }
+
+    template< class V, std::size_t R, class I, class K, class C>
+    typename base<V,R,I,K,C>::element_const_iterator&
+    base<V,R,I,K,C>::element_const_iterator::operator++() {
+      ++this->m_ikey;
+      return *this;
+    }
+
+    template< class V, std::size_t R, class I, class K, class C> bool
+    base<V,R,I,K,C>::element_const_iterator::operator<(
+      element_const_iterator const &rhs
+    ) const {
+      return this->m_ikey < rhs.m_ikey;
+    }
+
 
 #   ifdef _IOSTREAM_ // {
 

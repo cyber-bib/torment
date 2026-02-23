@@ -180,8 +180,11 @@ namespace torment {
       typedef typename base_type::value_type value_type;
       typedef strided_view<T, Rk, Idx, Sp, Sz> strided_view_type;
 
+      static constexpr bool m_is_size_dynamic = is_dynamic<Sz>;
+
       using base_type::base_type;
       using base_type::operator[];
+
       // using base_type::operator=;
 
 

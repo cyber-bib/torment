@@ -388,6 +388,7 @@ TEST(DenseArrayCoreTests, LowRankInitialization) {
   // std::cout << "m.shape():  " << m.shape() << "\n";
   // std::cout << "m: " << m << "\n";
 }
+
 TEST(DenseArrayProxyTests, StaticOneToOneTest) {
   using namespace torment::dense;
 
@@ -422,7 +423,6 @@ TEST(DenseArrayProxyTests, StaticOneToOneTest) {
   // std::cout << std::setw(2) << a << "\n";
   // std::cout << std::setw(2) << a << "\n";
 }
-
 TEST(DenseArrayProxyTests, StaticProjectionsTest) {
   using namespace torment::dense;
   auto &nullopt = std::nullopt;
@@ -502,6 +502,69 @@ TEST(DenseArrayProxyTests, StaticProjectionsTest) {
 
   // std::cout << std::setw(2) << a << "\n\n";
   // std::cout << std::setw(2) << b << "\n\n";
+}
+TEST(DenseArrayProxyTests, StaticMakeViewTest) {
+  using namespace torment::dense;
+  auto &cout = std::cout;
+  auto &free = torment::const_nullopt;
+
+
+  constexpr auto _shape_ = urr(7_u64, 5_u64, 3_u64, 2_u64);
+
+  typedef std::array<torment::const_optional<u64>, 4> view_t;
+
+  typedef base<int, 4, u64, _shape_> tensor;
+
+  tensor G;
+  tensor T = {    0,   1,   2,   3,   4,   5,   6,
+                  7,   8,   9,  10,  11,  12,  13,
+                  14,  15,  16,  17,  18,  19,  20,
+                  21,  22,  23,  24,  25,  26,  27,
+                  28,  29,  30,  31,  32,  33,  34,
+
+                  35,  36,  37,  38,  39,   0,  41,
+                  42,  43,  44,  45,  46,   0,  48,
+                  49,  50,  51,  52,  53,   0,  55,
+                  56,  57,  58,  59,  60,   0,  62,
+                  63,  64,  65,  66,  67,   0,  69,
+
+                  70,  71,  72,  73,  74,  75,  76,
+                  77,  78,  79,  80,  81,  82,  83,
+                  84,  85,  86,  87,  88,  89,  90,
+                  91,  92,  93,  94,  95,  96,  97,
+                  98,  99, 100, 101, 102, 103, 104,
+
+
+                105, 106, 107, 108,   0, 110, 111,
+                112, 113, 114, 115,   0, 117, 118,
+                119, 120, 121, 122,   0, 124, 125,
+                126, 127, 128, 129,   0, 131, 132,
+                133, 134, 135, 136,   0, 138, 139,
+
+                140, 141, 142, 143,   0,   0, 146,
+                147, 148, 149, 150,   0,   0, 153,
+                154, 155, 156, 157,   0,   0, 160,
+                161, 162, 163, 164,   0,   0, 167,
+                168, 169, 170, 171,   0,   0, 174,
+
+                175, 176, 177, 178,   0, 180, 181,
+                182, 183, 184, 185,   0, 187, 188,
+                189, 190, 191, 192,   0, 194, 195,
+                196, 197, 198, 199,   0, 201, 202,
+                203, 204, 205, 206,   0, 208, 209  };
+
+  auto P1 = make_view<view_t{4,free,free,1}>(G);
+  auto P2 = make_view<view_t{5,free,1,free}>(G);
+
+  for(int i = 0; auto &g : G) g = i++;
+  for(auto &p1 : P1) p1 = 0;
+  for(auto &p2 : P2) p2 = 0;
+
+  EXPECT_EQ(G, T);
+  // cout << "G:\n" << std::setw(3) << G << "\n";
+  // cout << "T:\n" << std::setw(3) << T << "\n";
+  // cout << "P1:\n" << std::setw(3) << P1 << "\n";
+  // cout << "P2:\n" << std::setw(3) << P2 << "\n";
 }
 
 // TEST(DenseArrayTests, MultiSubscriptAcessTest) {

@@ -93,6 +93,18 @@ namespace dense {
                         dims.end(),
                         [rank](std::optional<T> el) { return el.value_or(0) < rank; }  );
   }
+  template<class T, std::size_t N>
+  constexpr bool in_range(
+    std::array<const_optional<T>, N> const& dims,
+    T rank
+  ) {
+    static_assert(  std::is_integral_v<T>,
+                    "'T' type must be integral."  );
+
+    return std::all_of( dims.begin(),
+                        dims.end(),
+                        [rank](const_optional<T> el) { return el.value_or(0) < rank; }  );
+  }
 
   template<class T, std::size_t N>
   constexpr bool is_sorted_set(std::array<T, N> const& data) {
@@ -151,6 +163,32 @@ namespace dense {
     std::array<Idx, pRk> dst{};
     for(std::size_t i = 0; i < pRk; i++) {
       dst[i] = shape[static_cast<std::size_t>(proj[i])];
+    }
+
+    return dst;
+  }
+
+  template<class Idx, std::size_t Rk>
+  constexpr std::size_t deduce_PxRk(
+    std::array<const_optional<Idx>, Rk> const& view
+  ) {
+    std::size_t dst = 0;
+    for(auto const& axis : view) {
+      dst += axis.has_value() ? 0 : 1;
+    }
+    return dst;
+  }
+
+  template<std::size_t PxRk, class Idx, std::size_t Rk>
+  constexpr std::array<Idx, PxRk> deduce_PxSp(
+    std::array<const_optional<Idx>, Rk> const& view,
+    std::array<Idx, Rk> const& shape
+  ) {
+    std::array<Idx, PxRk> dst{};
+    for(std::size_t i = 0, j = 0; i < Rk; ++i) {
+      if(!view[i].has_value()) {
+        dst[j++] = shape[i];
+      }
     }
 
     return dst;
@@ -307,52 +345,57 @@ namespace dense {
 
 #endif // ] _IOSTREAM_
 
-template<
-  class T,
-  std::size_t Rk,
-  class Idx,
-  std::array<Idx, Rk> Sp,
-  std::size_t Fr,
-  std::array<Idx, Fr> FreeAxes,
-  std::size_t NFixed,
-  std::array<Idx, NFixed> FixedAxes>
-proxy<
-  T,
-  Rk,
-  Idx,
-  Sp,
-  Fr,
-  select_shape(Sp, FreeAxes)>
-make_view(base<T, Rk, Idx, Sp> &data, std::array<Idx, NFixed> const& fixed_vals) {
-  static_assert(Rk > 0, "make_view requires rank > 0.");
-  static_assert(Fr + NFixed == Rk,
-    "Free and fixed axis counts must add up to tensor rank.");
-  static_assert(in_range(FreeAxes, static_cast<Idx>(Rk)), "Free axis out of range.");
-  static_assert(in_range(FixedAxes, static_cast<Idx>(Rk)), "Fixed axis out of range.");
-  static_assert(is_sorted_set(FreeAxes), "Free axes must be a sorted set.");
-  static_assert(is_sorted_set(FixedAxes), "Fixed axes must be sorted set.");
-  static_assert(are_disjoint_sets(FreeAxes, FixedAxes),
-    "Free and fixed axes must be disjoint.");
+    template<
+      auto Vw,
+      class T,
+      std::size_t Rk,
+      class Idx,
+      std::array<Idx, Rk> Sp,
+      std::size_t PxRk,
+      std::array<Idx, PxRk> PxSp  >
+    requires std::same_as<
+      std::remove_cvref_t<decltype(Vw)>,
+      std::array<const_optional<Idx>, Rk>>
+    constexpr proxy<T,Rk,Idx,Sp,PxRk,PxSp>
+    make_view(base<T,Rk,Idx,Sp> &data) {
 
-  using proxy_type = proxy<
-    T,
-    Rk,
-    Idx,
-    Sp,
-    Fr,
-    select_shape(Sp, FreeAxes)>;
+#     pragma region static_asserts [
 
-  proxy_type dst(data);
-  std::array<std::optional<Idx>, Rk> view{};
-  view.fill(std::nullopt);
-  for(std::size_t i = 0; i < NFixed; i++) {
-    view[static_cast<std::size_t>(FixedAxes[i])] = fixed_vals[i];
-  }
+      static_assert(  PxRk == deduce_PxRk(Vw),
+                      "'PxRk' is not ment to be manually modified"  );
+      static_assert(  PxSp == deduce_PxSp<PxRk>(Vw, Sp),
+                      "'PxRk' is not ment to be manually modified"  );
 
-  dst.bind_view(view);
-  return dst;
-}
-};
+      static_assert([&]() consteval {
+        for(std::size_t i = 0; i < Rk; ++i) {
+          if(Vw[i].has_value() && !(Vw[i].value < Sp[i])) {
+            return false;
+          }
+        }
+        return true;
+      }(), "'view' fixed value is out of shape bounds.");
+
+#     pragma endregion ] static_asserts
+
+      typedef proxy<T,Rk,Idx,Sp,PxRk,PxSp> proxy_type;
+
+      proxy_type dst(data);
+      auto& ref = static_cast<typename proxy_type::base_type&>(dst);
+
+      for(std::size_t i = 0; auto &ithel : ref) {
+        auto iddr = ref.addr_from(i++);
+        for(std::size_t j = 0, k = 0; j < Rk; ++j) {
+          if(Vw[j].has_value()) {
+            ithel[j] = Vw[j].value;
+          } else {
+            ithel[j] = iddr[k++];
+          }
+        }
+      }
+
+      return dst;
+    }
+  };
 
 };
 

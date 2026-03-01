@@ -1,6 +1,9 @@
 #pragma once
 
+#include "../../../const_optional.hxx"
 #include <optional>
+#include <concepts>
+#include <type_traits>
 
 #include "core.hxx"
 #include "iterator.hxx"
@@ -30,6 +33,10 @@ namespace torment {
     constexpr bool in_range(
       std::array<std::optional<T>, N> const& view,
       T rank);
+    template<class T, std::size_t N>
+    constexpr bool in_range(
+      std::array<const_optional<T>, N> const& view,
+      T rank);
 
     template<class T, std::size_t N>
     constexpr bool is_sorted_set(std::array<T, N> const& data);
@@ -47,6 +54,15 @@ namespace torment {
     std::array<Idx, sRk> const& shape,
     std::array<Idx, pRk> const& proj
   );
+
+    template<class Idx, std::size_t Rk>
+    constexpr std::size_t deduce_PxRk(
+      std::array<const_optional<Idx>, Rk> const& view);
+
+    template<std::size_t PxRk, class Idx, std::size_t Rk>
+    constexpr std::array<Idx, PxRk> deduce_PxSp(
+      std::array<const_optional<Idx>, Rk> const& view,
+      std::array<Idx, Rk> const& shape);
 
     template< class T,
               std::size_t Rk,
@@ -140,23 +156,20 @@ namespace torment {
     };
 
     template<
+      auto Vw,
       class T,
       std::size_t Rk,
       class Idx,
       std::array<Idx, Rk> Sp,
-      std::size_t NFree,
-      std::array<Idx, NFree> FreeAxes,
-      std::size_t NFixed,
-      std::array<Idx, NFixed> FixedAxes>
-    proxy<
-      T,
-      Rk,
-      Idx,
-      Sp,
-      NFree,
-      select_shape(Sp, FreeAxes)>
-    make_view(base<T, Rk, Idx, Sp> &data, std::array<Idx, NFixed> const& fixed_vals);
+      std::size_t PxRk            = deduce_PxRk(Vw),
+      std::array<Idx, PxRk> PxSp  = deduce_PxSp<PxRk>(Vw, Sp)  >
+    requires std::same_as<
+      std::remove_cvref_t<decltype(Vw)>,
+      std::array<const_optional<Idx>, Rk>>
+    constexpr proxy<T,Rk,Idx,Sp,PxRk, PxSp>
+                        make_view(base<T,Rk,Idx,Sp> &data);
 
+    // proxy& bind_view(std::array<std::optional<Idx>, Rk> const& view);
   };
 
 };

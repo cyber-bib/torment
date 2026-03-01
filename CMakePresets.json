@@ -23,23 +23,6 @@
           "value": true
         }
       }
-    },
-    {
-      "name": "msvc",
-      "displayName": "The Only One",
-      "description": "work in progress",
-      "binaryDir": "${sourceDir}/out/msvc",
-      "toolchainFile": "$penv{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
-      "cacheVariables": {
-        "VCPKG_TARGET_TRIPLET": {
-          "type": "STRING",
-          "value": "x64-windows-release"
-        },
-        "CMAKE_EXPORT_COMPILE_COMMANDS": {
-          "type": "BOOL",
-          "value": true
-        }
-      }
     }
   ],
   "buildPresets": [
@@ -48,13 +31,6 @@
       "displayName": "The Only One",
       "description": "work in progress",
       "configurePreset": "default",
-      "configuration": "RelWithDebInfo"
-    },
-    {
-      "name": "msvc",
-      "displayName": "The Only One",
-      "description": "work in progress",
-      "configurePreset": "msvc",
       "configuration": "RelWithDebInfo"
     }
   ],
